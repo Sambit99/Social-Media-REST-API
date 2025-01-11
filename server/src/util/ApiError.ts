@@ -1,5 +1,5 @@
 import { NextFunction, Request } from 'express';
-import errorObject from './errorObject';
+import ErrorObject from './ErrorObject';
 import { HttpError } from '../types/types';
 
 export default (
@@ -10,7 +10,6 @@ export default (
   errorStatusCode: number = 500,
   customErrorMessage: string = ''
 ) => {
-  const errorObj: HttpError = errorObject(err, req, errorStatusCode, customErrorMessage);
-
+  const errorObj: HttpError = ErrorObject(err, req, errorStatusCode, customErrorMessage);
   nextFunction(errorObj);
 };

@@ -12,6 +12,11 @@ const server = app.listen(PORT, () => {
   console.log(`Server running on Port : ${PORT}`);
 });
 
+(() => {
+  try {
+  } catch (error) {}
+})();
+
 process.on('unhandledRejection', (err: Error) => {
   console.log(`UNHANDLER REJECTION! SHUTTING DOWN...`);
   console.log(err.name, err.message);
