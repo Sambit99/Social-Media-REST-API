@@ -1,11 +1,13 @@
-import { createLogger, format, transports } from 'winston';
-import { ConsoleTransportInstance, FileTransportInstance } from 'winston/lib/winston/transports';
 import util from 'util';
+import 'winston-mongodb';
 import config from '../config/config';
-import { ApplicationEnviroment } from '../constant/application';
 import path from 'path';
 import * as sourceMapSupport from 'source-map-support';
+import { createLogger, format, transports } from 'winston';
+import { ConsoleTransportInstance, FileTransportInstance } from 'winston/lib/winston/transports';
+import { ApplicationEnviroment } from '../constant/application';
 import { blue, green, red, yellow, magenta } from 'colorette';
+import { MongoDBTransportInstance } from 'winston-mongodb';
 
 const colorizedLevel = (level: string) => {
   switch (level) {
@@ -82,7 +84,19 @@ const fileTransport = (): Array<FileTransportInstance> => {
   ];
 };
 
+const mongoDBTrasnsport = (): Array<MongoDBTransportInstance> => {
+  return [
+    new transports.MongoDB({
+      level: 'info',
+      db: config.DATABASE_URL as string,
+      metaKey: 'meta',
+      expireAfterSeconds: 3600 * 24 * 30,
+      collection: 'applications-logs'
+    })
+  ];
+};
+
 export default createLogger({
   defaultMeta: { meta: {} },
-  transports: [...consoleTransport(), ...fileTransport()]
+  transports: [...consoleTransport(), ...fileTransport(), ...mongoDBTrasnsport()]
 });
