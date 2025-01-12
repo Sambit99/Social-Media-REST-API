@@ -5,20 +5,35 @@ import config from '../config/config';
 import { ApplicationEnviroment } from '../constant/application';
 import path from 'path';
 import * as sourceMapSupport from 'source-map-support';
+import { blue, green, red, yellow, magenta } from 'colorette';
+
+const colorizedLevel = (level: string) => {
+  switch (level) {
+    case 'ERROR':
+      return red(level);
+    case 'INFO':
+      return blue(level);
+    case 'WARN':
+      return yellow(level);
+    default:
+      return level;
+  }
+};
 
 sourceMapSupport.install();
 
 const consoleLogFormat = format.printf((info) => {
   const { level, message, timestamp, meta = {} } = info;
-  const customLevel = level.toUpperCase();
-  const customTimestamp = timestamp;
+  const customLevel = colorizedLevel(level.toUpperCase());
+  const customTimestamp = green(timestamp as string);
   const customMessage = message;
   const customeMeta = util.inspect(meta, {
     showHidden: false,
-    depth: null
+    depth: null,
+    colors: true
   });
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  const customLog = `${customLevel} [${customTimestamp}] ${customMessage}\n${'META'} ${customeMeta}\n`;
+  const customLog = `${customLevel} [${customTimestamp}] ${customMessage}\n${magenta('META')} ${customeMeta}\n`;
   return customLog;
 });
 
@@ -38,9 +53,9 @@ const fileLogFormat = format.printf((info) => {
     }
   }
   const logData = {
-    level: level.toUpperCase(),
+    level: colorizedLevel(level.toUpperCase()),
     message,
-    timestamp,
+    timestamp: green(timestamp as string),
     meta: logMeta
   };
   return JSON.stringify(logData, null, 4);
