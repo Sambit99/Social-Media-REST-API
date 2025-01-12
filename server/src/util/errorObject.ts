@@ -3,6 +3,7 @@ import { HttpError } from '../types/types';
 import responseMessage from '../constant/responseMessage';
 import config from '../config/config';
 import { ApplicationEnviroment } from '../constant/application';
+import Logger from './Logger';
 
 export default (
   // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
@@ -29,6 +30,8 @@ export default (
     delete errorObj.request.ip;
     delete errorObj.trace;
   }
+
+  Logger.error(`CONTROLLER ERROR`, { meta: errorObj });
 
   return errorObj;
 };
