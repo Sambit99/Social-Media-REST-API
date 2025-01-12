@@ -1,5 +1,6 @@
 import app from './app';
 import config from './config/config';
+import databaseService from './services/databaseService';
 import Logger from './util/Logger';
 
 process.on('uncaughtException', (err: Error) => {
@@ -10,8 +11,12 @@ process.on('uncaughtException', (err: Error) => {
 const PORT = config.PORT || 5000;
 const server = app.listen(PORT);
 
-(() => {
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
+(async () => {
   try {
+    // Database Connection
+    const db = await databaseService.connect();
+    Logger.info('DATABASE CONNECTED', { meta: { name: db.name } });
     Logger.info(`APPLICATION STARTED`, {
       meta: {
         PORT: config.PORT,
