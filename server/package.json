@@ -12,7 +12,9 @@
     "format:fix": "prettier . --fix",
     "prepare": "husky",
     "migrate:dev": "cross-env MIGRATE_MODE=development node script/migration.js",
-    "migrate:prod": "cross-env MIGRATE_MODE=production node script/migration.js"
+    "migrate:prod": "cross-env MIGRATE_MODE=production node script/migration.js",
+    "ncu:check": "npx ncu",
+    "ncu:update": "npx ncu --interactive"
   },
   "lint-staged": {
     "*.ts": [
@@ -49,6 +51,7 @@
     "express": "^4.21.2",
     "helmet": "^8.0.0",
     "mongoose": "^8.9.4",
+    "npm-check-updates": "^17.1.13",
     "rate-limiter-flexible": "^5.0.4",
     "source-map-support": "^0.5.21",
     "ts-migrate-mongoose": "^3.8.8",
