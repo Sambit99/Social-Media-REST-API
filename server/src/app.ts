@@ -1,11 +1,19 @@
 import express, { Application, NextFunction, Request, Response } from 'express';
 import path from 'path';
 import helmet from 'helmet';
+import cors from 'cors';
 
 const app: Application = express();
 
 // Middlewares
 app.use(helmet());
+app.use(
+  cors({
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'HEAD'],
+    // origin: ['https://client.com'], // Note: Add the origin address from which our application can be accessed
+    credentials: true // Note: Use to parse cookies
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, '../public')));

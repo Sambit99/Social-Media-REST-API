@@ -27,6 +27,7 @@
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
     "@eslint/js": "^9.17.0",
+    "@types/cors": "^2.8.17",
     "@types/dotenv-flow": "^3.3.3",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
@@ -42,6 +43,7 @@
   },
   "dependencies": {
     "colorette": "^2.0.20",
+    "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "dotenv-flow": "^4.1.0",
     "express": "^4.21.2",
