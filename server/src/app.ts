@@ -1,9 +1,11 @@
 import express, { Application, NextFunction, Request, Response } from 'express';
 import path from 'path';
+import helmet from 'helmet';
 
 const app: Application = express();
 
 // Middlewares
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, '../public')));
