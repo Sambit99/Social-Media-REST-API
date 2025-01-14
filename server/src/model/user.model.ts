@@ -1,7 +1,7 @@
-import { NextFunction } from 'express';
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import config from '../config/config';
 
 export interface IUser extends Document {
   _id: string;
@@ -13,9 +13,13 @@ export interface IUser extends Document {
   avatar?: string;
   website?: string;
   phone?: number;
-  dob: Date;
+  dob?: Date;
   account_type: string;
   role: string;
+  refreshToken: string;
+  validatePassword(password: string): Promise<boolean>;
+  generateAccessToken(): string;
+  generateRefreshToken(): string;
 }
 
 const AccountTypes = Object.freeze({
@@ -35,7 +39,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     username: {
       type: String,
       min: 5,
-      max: 10,
+      max: 15,
       required: true,
       unique: true
     },
@@ -55,13 +59,12 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: String,
       min: 8,
       max: 15,
-      required: true
+      required: true,
+      select: false
     },
     bio: {
       type: String,
-      max: 100,
-      required: true,
-      unique: true
+      max: 100
     },
     avatar: {
       type: String
@@ -84,12 +87,17 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: String,
       enum: Object.values(UserRoles),
       default: UserRoles.USER
+    },
+    refreshToken: {
+      type: String
     }
   },
   { timestamps: true }
 );
 
-userSchema.pre('save', async function name(next: NextFunction) {
+userSchema.pre('save', async function (next) {
+  // Note: Don't give type for next function Explicitly
+  // Note: next: NextFunction from Express will give error
   if (!this.isModified('password')) return next();
 
   this.password = await bcrypt.hash(this.password, 10);
@@ -97,8 +105,31 @@ userSchema.pre('save', async function name(next: NextFunction) {
   next();
 });
 
-userSchema.methods.ValidatePassword = async function (userPassword: string) {
+userSchema.methods.validatePassword = async function (userPassword: string): Promise<boolean> {
   return await bcrypt.compare(userPassword, this.password as string);
+};
+
+userSchema.methods.generateAccessToken = function (): string {
+  return jwt.sign(
+    {
+      _id: this._id as string,
+      username: this.username as string,
+      fullname: this.fullname as string,
+      email: this.email as string
+    },
+    config.ACCESS_TOKEN_SECRET!,
+    { expiresIn: config.ACCESS_TOKEN_EXPIRY }
+  );
+};
+
+userSchema.methods.generateRefreshToken = function (): string {
+  return jwt.sign(
+    {
+      _id: this._id as string
+    },
+    config.REFRESH_TOKEN_SECRET!,
+    { expiresIn: config.REFRESH_TOKEN_EXPIRY }
+  );
 };
 
 export const User: Model<IUser> = mongoose.model<IUser>('User', userSchema);

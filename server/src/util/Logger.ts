@@ -5,7 +5,7 @@ import path from 'path';
 import * as sourceMapSupport from 'source-map-support';
 import { createLogger, format, transports } from 'winston';
 import { ConsoleTransportInstance, FileTransportInstance } from 'winston/lib/winston/transports';
-import { ApplicationEnviroment } from '../constant/application';
+import { ApplicationEnvironment } from '../constant/application';
 import { blue, green, red, yellow, magenta } from 'colorette';
 import { MongoDBTransportInstance } from 'winston-mongodb';
 
@@ -64,7 +64,7 @@ const fileLogFormat = format.printf((info) => {
 });
 
 const consoleTransport = (): Array<ConsoleTransportInstance> => {
-  if (config.ENV === ApplicationEnviroment.PRODUCTION) return [];
+  if (config.ENV === ApplicationEnvironment.PRODUCTION) return [];
   return [
     new transports.Console({
       level: 'info',
@@ -74,7 +74,7 @@ const consoleTransport = (): Array<ConsoleTransportInstance> => {
 };
 
 const fileTransport = (): Array<FileTransportInstance> => {
-  if (config.ENV === ApplicationEnviroment.PRODUCTION) return [];
+  if (config.ENV === ApplicationEnvironment.PRODUCTION) return [];
   return [
     new transports.File({
       filename: path.join(__dirname, '../../logs', `${config.ENV}.log`),

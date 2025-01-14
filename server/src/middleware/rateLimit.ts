@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import config from '../config/config';
-import { ApplicationEnviroment } from '../constant/application';
+import { ApplicationEnvironment } from '../constant/application';
 import { rateLimiterMongo } from '../config/rateLimiter';
 import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import responseMessage from '../constant/responseMessage';
 
 export default (req: Request, _: Response, next: NextFunction) => {
-  if (config.ENV === ApplicationEnviroment.DEVELOPMENT) {
+  if (config.ENV === ApplicationEnvironment.DEVELOPMENT) {
     return next();
   }
 

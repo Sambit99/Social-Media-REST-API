@@ -2,6 +2,7 @@ import express, { Application, NextFunction, Request, Response } from 'express';
 import path from 'path';
 import helmet from 'helmet';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 const app: Application = express();
 
@@ -14,6 +15,7 @@ app.use(
     credentials: true // Note: Use to parse cookies
   })
 );
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, '../public')));
@@ -24,7 +26,10 @@ import globalErrorHandler from './middleware/globalErrorHandler';
 import responseMessage from './constant/responseMessage';
 import ApiError from './util/ApiError';
 import statusCodes from './constant/statusCodes';
+import AuthRouter from './routes/auth.routes';
+
 app.use('/api/v1', ApiRouter);
+app.use('/api/v1/auth', AuthRouter);
 
 // 404 Handler
 app.use((req: Request, _: Response, next: NextFunction) => {

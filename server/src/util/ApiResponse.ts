@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { HttpResponse } from '../types/types';
 import config from '../config/config';
-import { ApplicationEnviroment } from '../constant/application';
+import { ApplicationEnvironment } from '../constant/application';
 
 export default (
   req: Request,
@@ -22,7 +22,7 @@ export default (
     data
   };
 
-  if (config.ENV === ApplicationEnviroment.PRODUCTION) delete response.request.ip;
+  if (config.ENV === ApplicationEnvironment.PRODUCTION) delete response.request.ip;
 
   res.status(resposneStatusCode).json(response);
 };

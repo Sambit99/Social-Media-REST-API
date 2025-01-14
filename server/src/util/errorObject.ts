@@ -2,7 +2,7 @@ import { Request } from 'express';
 import { HttpError } from '../types/types';
 import responseMessage from '../constant/responseMessage';
 import config from '../config/config';
-import { ApplicationEnviroment } from '../constant/application';
+import { ApplicationEnvironment } from '../constant/application';
 import Logger from './Logger';
 
 export default (
@@ -23,10 +23,11 @@ export default (
     },
     message: customErrorMessage ? customErrorMessage : isError ? err.message : responseMessage.INTERNAL_SERVER_ERROR,
     data: null,
-    trace: isError ? { error: err.stack } : null
+    trace: isError ? { error: err.stack } : err instanceof Object ? err : null
   };
 
-  if (config.ENV === ApplicationEnviroment.PRODUCTION) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (config.ENV === ApplicationEnvironment.PRODUCTION) {
     delete errorObj.request.ip;
     delete errorObj.trace;
   }
