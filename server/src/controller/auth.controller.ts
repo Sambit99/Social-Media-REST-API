@@ -6,6 +6,8 @@ import statusCodes from '../constant/statusCodes';
 import responseMessage from '../constant/responseMessage';
 import { IUser, User } from '../model/user.model';
 import ApiResponse from '../util/ApiResponse';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import config from '../config/config';
 
 interface AuthenticatedRequest extends Request {
   user?: IUser;
@@ -113,4 +115,35 @@ const logout = AsyncHandler(async (req: AuthenticatedRequest, res: Response, nex
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
-export { signUp, login, logout };
+const refreshAccessToken = AsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const incomingRefreshToken: string | null = req.cookies?.refreshToken || req.body?.refreshToken;
+
+  if (!incomingRefreshToken)
+    return ApiError(next, new Error('Token expired/not found. Please Login'), req, statusCodes.UNAUTHENTICATED);
+
+  const decodedToken: JwtPayload = jwt.verify(
+    incomingRefreshToken,
+    config.REFRESH_TOKEN_SECRET as jwt.Secret
+  ) as JwtPayload;
+
+  const userId = decodedToken._id as string;
+
+  const user = await User.findById(userId);
+
+  if (!user) return ApiError(next, new Error('User not found'), req, statusCodes.UNAUTHENTICATED);
+
+  const tokens = await generateAccessAndRefreshTokens(user._id);
+  let accessToken, refreshToken;
+  if (tokens) {
+    accessToken = tokens.accessToken;
+    refreshToken = tokens.refreshToken;
+  }
+
+  res.cookie('accessToken', accessToken, cookieOptions);
+  res.cookie('refreshToken', refreshToken, cookieOptions);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS);
+});
+
+export { signUp, login, logout, refreshAccessToken };
