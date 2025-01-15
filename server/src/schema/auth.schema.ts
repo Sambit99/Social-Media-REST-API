@@ -18,4 +18,19 @@ const loginSchema = basicLoginSchema.refine((data) => data.email || data.usernam
   path: ['username', 'email']
 });
 
-export { signUpSchema, loginSchema };
+const updatePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(8).max(15),
+    newPassword: z.string().min(8).max(15),
+    confirmPassword: z.string().min(8).max(15)
+  })
+  .refine((data) => data.oldPassword !== data.newPassword, {
+    message: 'New password must not be the same as the old password',
+    path: ['newPassword'] // Note: Points to the field causing the issue
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Confirm password must be the same as the New password',
+    path: ['confirmPassword'] // Note: Points to the field causing the issue
+  });
+
+export { signUpSchema, loginSchema, updatePasswordSchema };

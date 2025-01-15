@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { AsyncHandler } from '../util/AsyncHandler';
-import { loginSchema, signUpSchema } from '../schema/auth.schema';
+import { loginSchema, signUpSchema, updatePasswordSchema } from '../schema/auth.schema';
 import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import responseMessage from '../constant/responseMessage';
@@ -146,4 +146,29 @@ const refreshAccessToken = AsyncHandler(async (req: Request, res: Response, next
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS);
 });
 
-export { signUp, login, logout, refreshAccessToken };
+const changeCurrentPassword = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const validation = updatePasswordSchema.safeParse(req.body);
+
+  if (!validation.success)
+    return ApiError(next, validation.error.errors, req, statusCodes.BAD_REQUEST, responseMessage.FAILED);
+
+  const userId = req.user?._id;
+
+  const { oldPassword, newPassword } = validation.data;
+
+  const user = await User.findById(userId).select('+password');
+
+  if (!user) return ApiError(next, new Error('User not found'), req, statusCodes.INTERNAL_SERVER_ERROR);
+
+  const isValidPassword = await user.validatePassword(oldPassword);
+
+  if (!isValidPassword) return ApiError(next, new Error('Wrong password'), req, statusCodes.BAD_REQUEST);
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: true });
+  user.password = ''; // Note: As we have made 'password' as mandatory in our User Model. We can't use something like Delete user.password
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, user);
+});
+
+export { signUp, login, logout, refreshAccessToken, changeCurrentPassword };
