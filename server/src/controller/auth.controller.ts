@@ -4,8 +4,13 @@ import { loginSchema, signUpSchema } from '../schema/auth.schema';
 import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import responseMessage from '../constant/responseMessage';
-import { User } from '../model/user.model';
+import { IUser, User } from '../model/user.model';
 import ApiResponse from '../util/ApiResponse';
+
+interface AuthenticatedRequest extends Request {
+  user?: IUser;
+}
+
 const cookieOptions = {
   httpOnly: true,
   secure: true
@@ -91,4 +96,21 @@ const login = AsyncHandler(async (req: Request, res: Response, next: NextFunctio
   }
 });
 
-export { signUp, login };
+const logout = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const userId = req.user?._id;
+
+  const user = await User.findById(userId);
+
+  if (!user) return ApiError(next, new Error('User not found'), req, statusCodes.UNAUTHENTICATED);
+
+  await User.findByIdAndUpdate(userId, {
+    $unset: { refreshToken: 1 } // Note: This removes the field from document
+  });
+
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+});
+
+export { signUp, login, logout };
