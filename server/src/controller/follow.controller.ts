@@ -77,4 +77,43 @@ const getFollowers = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, followers);
 });
 
-export { toggleFollow, getFollowers };
+const getFollowing = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const userId = req.params.userId;
+  const followings = await Follow.aggregate([
+    { $match: { follower: new Types.ObjectId(userId) } },
+    {
+      $group: {
+        _id: '$follower',
+        following: { $addToSet: '$followed' },
+        totalFollowing: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'following',
+        foreignField: '_id',
+        as: 'following',
+        pipeline: [{ $project: { username: 1, fullname: 1, email: 1 } }]
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'follower',
+        pipeline: [{ $project: { username: 1, fullname: 1, email: 1 } }]
+      }
+    },
+    {
+      $project: { _id: 0, follower: 1, following: 1, totalFollowing: 1 }
+    }
+  ]);
+
+  if (!followings) return ApiError(next, new Error('No followings found'), req, statusCodes.NOT_FOUND);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, followings);
+});
+
+export { toggleFollow, getFollowers, getFollowing };
