@@ -37,4 +37,44 @@ const toggleFollow = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
-export { toggleFollow };
+const getFollowers = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const userId = req.params.userId;
+
+  const followers = await Follow.aggregate([
+    { $match: { followed: new Types.ObjectId(userId) } },
+    {
+      $group: {
+        _id: '$followed',
+        followers: { $addToSet: '$follower' },
+        totalFollowers: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'followers',
+        foreignField: '_id',
+        as: 'followers',
+        pipeline: [{ $project: { username: 1, fullname: 1, email: 1 } }]
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'followed',
+        pipeline: [{ $project: { username: 1, fullname: 1, email: 1 } }]
+      }
+    },
+    {
+      $project: { _id: 0, followed: 1, followers: 1, totalFollowers: 1 }
+    }
+  ]);
+
+  if (!followers) return ApiError(next, new Error('No followers found'), req, statusCodes.NOT_FOUND);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, followers);
+});
+
+export { toggleFollow, getFollowers };
