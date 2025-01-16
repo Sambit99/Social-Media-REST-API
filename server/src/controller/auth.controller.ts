@@ -34,37 +34,41 @@ const generateAccessAndRefreshTokens = async (_id: string) => {
 };
 
 const signUp = AsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const validation = signUpSchema.safeParse(req.body);
-  if (!validation.success)
-    return ApiError(next, validation.error.errors, req, statusCodes.BAD_REQUEST, responseMessage.BAD_REQUEST);
+  try {
+    const validation = signUpSchema.safeParse(req.body);
+    if (!validation.success)
+      return ApiError(next, validation.error.errors, req, statusCodes.BAD_REQUEST, responseMessage.BAD_REQUEST);
 
-  const { username, fullname, email, password } = validation.data;
+    const { username, fullname, email, password } = validation.data;
 
-  const isUserExists = await User.findOne({ $or: [{ username }, { email }] });
-  if (isUserExists)
-    return ApiError(
-      next,
-      new Error('User with username/email already exists. Please login'),
-      req,
-      statusCodes.UNAUTHENTICATED
-    );
+    const isUserExists = await User.findOne({ $or: [{ username }, { email }] });
+    if (isUserExists)
+      return ApiError(
+        next,
+        new Error('User with username/email already exists. Please login'),
+        req,
+        statusCodes.UNAUTHENTICATED
+      );
 
-  const newUser = await User.create({ username, fullname, email, password });
-  const tokens = await generateAccessAndRefreshTokens(newUser._id);
-  let accessToken, refreshToken;
-  if (tokens) {
-    accessToken = tokens.accessToken;
-    refreshToken = tokens.refreshToken;
+    const newUser = await User.create({ username, fullname, email, password });
+    const tokens = await generateAccessAndRefreshTokens(newUser._id);
+    let accessToken, refreshToken;
+    if (tokens) {
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    }
+
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+
+    if (!newUser)
+      return ApiError(next, new Error('Error while creating new user'), req, statusCodes.INTERNAL_SERVER_ERROR);
+
+    newUser.password = ''; // Note: Clearing Password for the response
+    return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newUser);
+  } catch (error) {
+    return ApiError(next, error, req);
   }
-
-  res.cookie('accessToken', accessToken, cookieOptions);
-  res.cookie('refreshToken', refreshToken, cookieOptions);
-
-  if (!newUser)
-    return ApiError(next, new Error('Error while creating new user'), req, statusCodes.INTERNAL_SERVER_ERROR);
-
-  newUser.password = ''; // Note: Clearing Password for the response
-  return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newUser);
 });
 
 const login = AsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
