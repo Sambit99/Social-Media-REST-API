@@ -7,7 +7,7 @@ import config from '../config/config';
 import { IUser, User } from '../model/user.model';
 
 interface AuthenticatedRequest extends Request {
-  user?: IUser;
+  user: IUser;
 }
 
 const isLoggedIn = AsyncHandler(async (req: AuthenticatedRequest, _: Response, next: NextFunction) => {

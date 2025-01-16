@@ -27,9 +27,11 @@ import responseMessage from './constant/responseMessage';
 import ApiError from './util/ApiError';
 import statusCodes from './constant/statusCodes';
 import AuthRouter from './routes/auth.routes';
+import UserRouter from './routes/user.routes';
 
 app.use('/api/v1', ApiRouter);
 app.use('/api/v1/auth', AuthRouter);
+app.use('/api/v1/users', UserRouter);
 
 // 404 Handler
 app.use((req: Request, _: Response, next: NextFunction) => {

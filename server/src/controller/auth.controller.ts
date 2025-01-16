@@ -10,7 +10,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../config/config';
 
 interface AuthenticatedRequest extends Request {
-  user?: IUser;
+  user: IUser;
 }
 
 const cookieOptions = {
@@ -63,6 +63,7 @@ const signUp = AsyncHandler(async (req: Request, res: Response, next: NextFuncti
   if (!newUser)
     return ApiError(next, new Error('Error while creating new user'), req, statusCodes.INTERNAL_SERVER_ERROR);
 
+  newUser.password = ''; // Note: Clearing Password for the response
   return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newUser);
 });
 
