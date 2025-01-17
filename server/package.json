@@ -50,6 +50,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "cloudinary": "^2.5.1",
     "colorette": "^2.0.20",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
