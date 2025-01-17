@@ -2,9 +2,9 @@ import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IPost extends Document {
   owner: Schema.Types.ObjectId;
-  content: string;
-  imageFile: string;
-  videoFile: string;
+  content?: string;
+  imageFile?: string;
+  videoFile?: string;
   visibility: string;
   likesCount: number;
   commentsCount: number;

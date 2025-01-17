@@ -11,6 +11,9 @@ const fileSchema = z.object({
   mimetype: z
     .string()
     .refine((type) => [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES].includes(type), 'Unsupported media'),
+  originalname: z.string(),
+  path: z.string(),
+  encoding: z.string(),
   buffer: z.instanceof(Buffer).optional()
 });
 
@@ -26,11 +29,25 @@ const videoSchema = fileSchema.extend({
 const uploadPostSchema = z
   .object({
     content: z.string().optional(),
-    imageFile: imageSchema.optional(),
-    videoFile: videoSchema.optional()
+    imageFile: z
+      .array(imageSchema)
+      .optional()
+      .refine((files) => !files || files.length === 1, {
+        message: 'Only one image file is allowed.'
+      }),
+    videoFile: z
+      .array(videoSchema)
+      .optional()
+      .refine((files) => !files || files.length === 1, {
+        message: 'Only one video file is allowed.'
+      })
   })
-  .refine((data) => data.imageFile || data.videoFile, {
-    message: 'Please provide Content/Image/Video in order to create s post',
+  .refine((data) => (data.imageFile && data.imageFile.length) || (data.videoFile && data.videoFile.length), {
+    message: 'Please provide Image/Video in order to create s post',
+    path: []
+  })
+  .refine((data) => !(data.imageFile && data.imageFile.length && data.videoFile && data.videoFile.length), {
+    message: 'Either provide Image/Video to post. Not both',
     path: []
   });
 
