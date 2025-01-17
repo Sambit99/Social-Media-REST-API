@@ -5,7 +5,7 @@ export interface ILike extends Document {
   likedBy: Schema.Types.ObjectId;
 }
 
-const likeModel: Schema<ILike> = new mongoose.Schema(
+const likeSchema: Schema<ILike> = new mongoose.Schema(
   {
     post: { type: Schema.Types.ObjectId, ref: 'Post' },
     likedBy: { type: Schema.Types.ObjectId, ref: 'User' }
@@ -13,4 +13,4 @@ const likeModel: Schema<ILike> = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Like: Model<ILike> = mongoose.model<ILike>('Like', likeModel);
+export const Like: Model<ILike> = mongoose.model<ILike>('Like', likeSchema);

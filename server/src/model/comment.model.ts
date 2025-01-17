@@ -7,7 +7,7 @@ export interface IComment extends Document {
   likesCount: number;
 }
 
-const commentModel: Schema<IComment> = new mongoose.Schema(
+const commentSchema: Schema<IComment> = new mongoose.Schema(
   {
     post: { type: Schema.Types.ObjectId, ref: 'Post' },
     commentedBy: { type: Schema.Types.ObjectId, ref: 'User' },
@@ -17,4 +17,4 @@ const commentModel: Schema<IComment> = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Comment: Model<IComment> = mongoose.model<IComment>('Comment', commentModel);
+export const Comment: Model<IComment> = mongoose.model<IComment>('Comment', commentSchema);
