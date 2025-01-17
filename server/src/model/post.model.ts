@@ -1,8 +1,10 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IPost extends Document {
-  postedBy: Schema.Types.ObjectId;
+  owner: Schema.Types.ObjectId;
   content: string;
+  imageFile: string;
+  videoFile: string;
   visibility: string;
   likesCount: number;
   commentsCount: number;
@@ -17,8 +19,10 @@ const PostVisibility = Object.freeze({
 
 const postSchema: Schema<IPost> = new mongoose.Schema(
   {
-    postedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    owner: { type: Schema.Types.ObjectId, ref: 'User' },
     content: { type: String },
+    imageFile: { type: String },
+    videoFile: { type: String },
     visibility: {
       type: String,
       enum: Object.values(PostVisibility),

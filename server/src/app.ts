@@ -28,10 +28,12 @@ import ApiError from './util/ApiError';
 import statusCodes from './constant/statusCodes';
 import AuthRouter from './routes/auth.routes';
 import UserRouter from './routes/user.routes';
+import PostRouter from './routes/post.routes';
 
 app.use('/api/v1', ApiRouter);
 app.use('/api/v1/auth', AuthRouter);
 app.use('/api/v1/users', UserRouter);
+app.use('/api/v1/posts', PostRouter);
 
 // 404 Handler
 app.use((req: Request, _: Response, next: NextFunction) => {
