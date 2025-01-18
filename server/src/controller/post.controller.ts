@@ -5,7 +5,7 @@ import { uploadPostSchema } from '../schema/post.schema';
 import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import responseMessage from '../constant/responseMessage';
-import { Post } from '../model/post.model';
+import { Post, PostVisibility } from '../model/post.model';
 import mongoose from 'mongoose';
 import { uploadOnCloudinary } from '../util/Cloudinary';
 import ApiResponse from '../util/ApiResponse';
@@ -45,6 +45,14 @@ const createNewPost = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
   return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPost);
 });
 
+const getPublicPosts = AsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const posts = await Post.find({ visibility: PostVisibility.PUBLIC }).sort({ createdAt: -1 });
+
+  if (!posts) return ApiError(next, new Error('No posts found'), req, statusCodes.BAD_REQUEST);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, posts);
+});
+
 const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const postId = req.params.postId;
 
@@ -55,4 +63,4 @@ const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
 });
 
-export { createNewPost, getPostById };
+export { createNewPost, getPublicPosts, getPostById };
