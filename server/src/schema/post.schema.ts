@@ -4,6 +4,7 @@ import { z } from 'zod';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/mkv', 'video/webm'];
+const ALLOWED_VISIBILITY_TYPES = ['public', 'private', 'close-friends'];
 const MAX_VIDEO_DURATION = 300; // 5 minutes
 
 const fileSchema = z.object({
@@ -26,9 +27,19 @@ const videoSchema = fileSchema.extend({
   duration: z.number().max(MAX_VIDEO_DURATION, 'Video duration exceeds 5 minutes').optional()
 });
 
-const uploadPostSchema = z
+const uploadPostSchema = z.object({
+  content: z.string().optional(),
+  visibility: z
+    .string()
+    .refine((type) => [...ALLOWED_VISIBILITY_TYPES].includes(type), {
+      message: 'Not a valid visibility choice',
+      path: ['visibility']
+    })
+    .optional()
+});
+
+const uploadFileSchema = z
   .object({
-    content: z.string().optional(),
     imageFile: z
       .array(imageSchema)
       .optional()
@@ -51,4 +62,4 @@ const uploadPostSchema = z
     path: []
   });
 
-export { uploadPostSchema };
+export { uploadFileSchema, uploadPostSchema };

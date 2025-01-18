@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { IUser } from '../model/user.model';
 import { AsyncHandler } from '../util/AsyncHandler';
-import { uploadPostSchema } from '../schema/post.schema';
+import { uploadFileSchema, uploadPostSchema } from '../schema/post.schema';
 import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import responseMessage from '../constant/responseMessage';
@@ -15,18 +15,21 @@ interface AuthenticatedRequest extends Request {
 }
 
 const createNewPost = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const validation = uploadPostSchema.safeParse(req.files);
-  if (!validation.success)
-    return ApiError(next, validation.error.errors, req, statusCodes.BAD_REQUEST, responseMessage.FAILED);
+  const fileValidation = uploadFileSchema.safeParse(req.files);
+  if (!fileValidation.success)
+    return ApiError(next, fileValidation.error.errors, req, statusCodes.BAD_REQUEST, responseMessage.FAILED);
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const content: string = req.body?.content as string;
+  const postValidation = uploadPostSchema.safeParse(req.body);
+  if (!postValidation.success)
+    return ApiError(next, postValidation.error.errors, req, statusCodes.BAD_REQUEST, responseMessage.FAILED);
 
-  const { imageFile, videoFile } = validation.data;
+  const { content, visibility } = postValidation.data;
+  const { imageFile, videoFile } = fileValidation.data;
   const userId = req.user._id;
 
   const newPost = await Post.create({ owner: new mongoose.Types.ObjectId(userId) });
   if (content) newPost.content = content;
+  if (visibility) newPost.visibility = visibility;
   if (imageFile && imageFile.length) {
     const uploadedImage = await uploadOnCloudinary(imageFile[0].path);
     newPost.imageFile = uploadedImage?.url as string;
