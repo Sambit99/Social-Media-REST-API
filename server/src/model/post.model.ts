@@ -11,7 +11,7 @@ export interface IPost extends Document {
   sharesCount: number;
 }
 
-const PostVisibility = Object.freeze({
+export const PostVisibility = Object.freeze({
   PUBLIC: 'public',
   PRIVATE: 'private',
   CLOSE_FRIENDS: 'close-friends'

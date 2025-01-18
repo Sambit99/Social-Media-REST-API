@@ -45,4 +45,14 @@ const createNewPost = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
   return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPost);
 });
 
-export { createNewPost };
+const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const postId = req.params.postId;
+
+  const post = await Post.findById(postId);
+
+  if (!post) return ApiError(next, new Error('No post found with given id'), req, statusCodes.BAD_REQUEST);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
+});
+
+export { createNewPost, getPostById };
