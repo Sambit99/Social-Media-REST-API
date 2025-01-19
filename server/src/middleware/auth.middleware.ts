@@ -5,6 +5,9 @@ import statusCodes from '../constant/statusCodes';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../config/config';
 import { IUser, User } from '../model/user.model';
+import { Model, Types } from 'mongoose';
+import responseMessage from '../constant/responseMessage';
+import { Document } from 'mongoose';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -28,4 +31,25 @@ const isLoggedIn = AsyncHandler(async (req: AuthenticatedRequest, _: Response, n
   }
 });
 
-export { isLoggedIn };
+const onlyOwner = <T extends Document>(model: Model<T>, ownerFieldName: string, idName: string) => {
+  return AsyncHandler(async (req: AuthenticatedRequest, _: Response, next: NextFunction) => {
+    try {
+      const id = req.params[idName];
+      const userId = new Types.ObjectId(req.user._id);
+      const record = await model.findById(id);
+
+      if (!record) return ApiError(next, new Error('Record not found'), req, statusCodes.BAD_REQUEST);
+
+      const recordOwner = record[ownerFieldName as keyof T] as Types.ObjectId;
+
+      if (!recordOwner || !recordOwner.equals(userId))
+        return ApiError(next, new Error(responseMessage.UNAUTHORIZED), req, statusCodes.UNAUTHORIZED);
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
+};
+
+export { isLoggedIn, onlyOwner };

@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { createNewPost, getPostById, getPublicPosts } from '../controller/post.controller';
+import { createNewPost, getPostById, getPublicPosts, updatePostById } from '../controller/post.controller';
 import { upload } from '../middleware/multer.middleware';
-import { isLoggedIn } from '../middleware/auth.middleware';
+import { isLoggedIn, onlyOwner } from '../middleware/auth.middleware';
+import { Post } from '../model/post.model';
 
 const router = Router();
 
@@ -15,6 +16,9 @@ router.route('/').post(
   ]),
   createNewPost
 );
-router.route('/:postId').get(getPostById);
+router
+  .route('/:postId')
+  .get(getPostById)
+  .patch(onlyOwner(Post, 'owner', 'postId'), updatePostById);
 
 export default router;
