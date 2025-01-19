@@ -9,6 +9,7 @@ import {
 import { upload } from '../middleware/multer.middleware';
 import { isLoggedIn, onlyOwner } from '../middleware/auth.middleware';
 import { Post } from '../model/post.model';
+import { togglePostLike } from '../controller/like.controller';
 
 const router = Router();
 
@@ -27,5 +28,7 @@ router
   .get(getPostById)
   .patch(onlyOwner(Post, 'owner', 'postId'), updatePostById)
   .delete(onlyOwner(Post, 'owner', 'postId'), deletePostById);
+
+router.route('/:postId/like').post(togglePostLike);
 
 export default router;
