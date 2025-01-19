@@ -84,4 +84,11 @@ const updatePostById = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
 });
 
-export { createNewPost, getPublicPosts, getPostById, updatePostById };
+const deletePostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  const postId = req.params.postId;
+  await Post.findByIdAndDelete(postId);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+});
+
+export { createNewPost, getPublicPosts, getPostById, updatePostById, deletePostById };
