@@ -62,4 +62,20 @@ const uploadFileSchema = z
     path: []
   });
 
-export { uploadFileSchema, uploadPostSchema };
+const updatePostSchema = z
+  .object({
+    content: z.string().optional(),
+    visibility: z
+      .string()
+      .refine((type) => [...ALLOWED_VISIBILITY_TYPES].includes(type), {
+        message: 'Not a valid visibility choice',
+        path: ['visibility']
+      })
+      .optional()
+  })
+  .refine((data) => data.content || data.visibility, {
+    message: 'Provide Content/Visibility in-order to update post',
+    path: ['visibility']
+  });
+
+export { uploadFileSchema, uploadPostSchema, updatePostSchema };

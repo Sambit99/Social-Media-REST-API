@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { IUser } from '../model/user.model';
 import { AsyncHandler } from '../util/AsyncHandler';
-import { uploadFileSchema, uploadPostSchema } from '../schema/post.schema';
+import { updatePostSchema, uploadFileSchema, uploadPostSchema } from '../schema/post.schema';
 import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import responseMessage from '../constant/responseMessage';
@@ -66,4 +66,22 @@ const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
 });
 
-export { createNewPost, getPublicPosts, getPostById };
+const updatePostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const postId = req.params.postId;
+
+  const validation = updatePostSchema.safeParse(req.body);
+  if (!validation.success)
+    return ApiError(next, validation.error.errors, req, statusCodes.BAD_REQUEST, responseMessage.FAILED);
+
+  const { content, visibility } = validation.data;
+  const post = await Post.findById(postId);
+  if (!post) return ApiError(next, new Error('No post found with given id'), req, statusCodes.BAD_REQUEST);
+  if (content) post.content = content;
+  if (visibility) post.visibility = visibility;
+
+  await post.save();
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
+});
+
+export { createNewPost, getPublicPosts, getPostById, updatePostById };
