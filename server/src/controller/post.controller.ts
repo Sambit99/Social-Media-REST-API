@@ -6,7 +6,7 @@ import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import responseMessage from '../constant/responseMessage';
 import { Post, PostVisibility } from '../model/post.model';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { uploadOnCloudinary } from '../util/Cloudinary';
 import ApiResponse from '../util/ApiResponse';
 
@@ -66,6 +66,48 @@ const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
 });
 
+const getSpecificUserPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  const specificUserId = req.params.userId;
+
+  const allPosts = await Post.aggregate([
+    {
+      $match: {
+        owner: new Types.ObjectId(specificUserId)
+      }
+    },
+    // Note: Add this condition to filter out only public posts
+    /*
+    {
+      $group: {
+        _id: '$owner',
+        posts: { $addToSet: '$_id' },
+        totalPosts: { $sum: 1 }
+      }
+    },*/
+    {
+      $lookup: {
+        from: 'posts',
+        localField: 'posts',
+        foreignField: '_id',
+        as: 'posts',
+        pipeline: [{ $sort: { createdAt: -1 } }, { $project: { owner: 0 } }]
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'owner',
+        pipeline: [{ $project: { username: 1, fullname: 1 } }]
+      }
+    },
+    { $project: { _id: 0, owner: 1, posts: 1, totalPosts: 1 } }
+  ]);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, allPosts);
+});
+
 const updatePostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const postId = req.params.postId;
 
@@ -91,4 +133,4 @@ const deletePostById = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
-export { createNewPost, getPublicPosts, getPostById, updatePostById, deletePostById };
+export { createNewPost, getPublicPosts, getPostById, updatePostById, deletePostById, getSpecificUserPosts };
