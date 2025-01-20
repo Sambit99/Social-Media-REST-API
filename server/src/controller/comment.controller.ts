@@ -34,4 +34,12 @@ const createNewComment = AsyncHandler(async (req: AuthenticatedRequest, res: Res
   return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, comment);
 });
 
-export { createNewComment };
+const deleteComment = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  const commentId = req.params.commentId;
+
+  await Comment.findByIdAndDelete(commentId);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+});
+
+export { createNewComment, deleteComment };

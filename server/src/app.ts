@@ -29,11 +29,13 @@ import statusCodes from './constant/statusCodes';
 import AuthRouter from './routes/auth.routes';
 import UserRouter from './routes/user.routes';
 import PostRouter from './routes/post.routes';
+import CommentRouter from './routes/comment.routes';
 
 app.use('/api/v1', ApiRouter);
 app.use('/api/v1/auth', AuthRouter);
 app.use('/api/v1/users', UserRouter);
 app.use('/api/v1/posts', PostRouter);
+app.use('/api/v1/comments', CommentRouter);
 
 // 404 Handler
 app.use((req: Request, _: Response, next: NextFunction) => {
