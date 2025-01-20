@@ -38,4 +38,61 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
-export { togglePostLike };
+const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  const postId = req.params.postId;
+
+  const postLikes = await Like.aggregate([
+    {
+      $match: { post: new Types.ObjectId(postId) }
+    },
+    {
+      $group: {
+        _id: '$post',
+        likedBy: { $addToSet: '$likedBy' },
+        totalLikes: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'likedBy',
+        foreignField: '_id',
+        as: 'likedBy',
+        pipeline: [
+          {
+            $project: { username: 1, fullname: 1 }
+          }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'posts',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'post',
+        pipeline: [
+          {
+            $project: {
+              owner: 1,
+              content: 1,
+              imageFile: 1,
+              videoFile: 1,
+              visibility: 1,
+              likesCount: 1,
+              commentsCount: 1,
+              sharesCount: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $project: { _id: 0, post: 1, likedBy: 1, totalLikes: 1 }
+    }
+  ]);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, postLikes);
+});
+
+export { togglePostLike, getPostLikes };
