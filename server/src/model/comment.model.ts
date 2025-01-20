@@ -1,4 +1,5 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
+import { Post } from './post.model';
 
 export interface IComment extends Document {
   post: Schema.Types.ObjectId;
@@ -16,5 +17,13 @@ const commentSchema: Schema<IComment> = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+commentSchema.post('save', async function () {
+  if (this.post) {
+    const totalCommentsForThePost = await Comment.countDocuments({ post: this.post });
+
+    await Post.findByIdAndUpdate(this.post, { commentsCount: totalCommentsForThePost });
+  }
+});
 
 export const Comment: Model<IComment> = mongoose.model<IComment>('Comment', commentSchema);
