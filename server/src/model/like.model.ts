@@ -24,4 +24,12 @@ likeSchema.post('save', async function () {
   }
 });
 
+likeSchema.post('findOneAndDelete', async function (doc: ILike) {
+  if (doc) {
+    const totalLikesForThePost: number = await Like.countDocuments({ post: doc.post });
+
+    await Post.findByIdAndUpdate(doc.post, { likesCount: totalLikesForThePost });
+  }
+});
+
 export const Like: Model<ILike> = mongoose.model<ILike>('Like', likeSchema);

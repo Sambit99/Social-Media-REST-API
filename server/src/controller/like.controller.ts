@@ -31,11 +31,10 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
       return ApiError(next, new Error('Error while liking a post'), req, statusCodes.INTERNAL_SERVER_ERROR);
 
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPostLike);
+  } else {
+    await Like.findOneAndDelete({ post: new Types.ObjectId(postId) });
+    return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
   }
-
-  await isPostLiked.deleteOne();
-
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
 const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
