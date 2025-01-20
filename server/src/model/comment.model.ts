@@ -26,4 +26,12 @@ commentSchema.post('save', async function () {
   }
 });
 
+commentSchema.post('findOneAndDelete', async function (doc: IComment) {
+  if (doc) {
+    const totalCommentsForThePost = await Comment.countDocuments({ post: doc.post });
+
+    await Post.findByIdAndUpdate(doc.post, { commentsCount: totalCommentsForThePost });
+  }
+});
+
 export const Comment: Model<IComment> = mongoose.model<IComment>('Comment', commentSchema);
