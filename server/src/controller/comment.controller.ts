@@ -4,7 +4,7 @@ import { AsyncHandler } from '../util/AsyncHandler';
 import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import { Comment } from '../model/comment.model';
-import { newComment } from '../schema/comment.schema';
+import { newCommentSchema, updateCommentSchema } from '../schema/comment.schema';
 import { Types } from 'mongoose';
 import ApiResponse from '../util/ApiResponse';
 import responseMessage from '../constant/responseMessage';
@@ -14,7 +14,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 const createNewComment = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const validation = newComment.safeParse(req.body);
+  const validation = newCommentSchema.safeParse(req.body);
   if (!validation.success) return ApiError(next, validation.error.errors, req, statusCodes.BAD_REQUEST);
 
   const postId = req.params.postId;
@@ -42,4 +42,20 @@ const deleteComment = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
-export { createNewComment, deleteComment };
+const updateComment = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const commentId = req.params.commentId;
+
+  const validation = updateCommentSchema.safeParse(req.body);
+  if (!validation.success) return ApiError(next, validation.error.errors, req, statusCodes.BAD_REQUEST);
+
+  const { content } = validation.data;
+
+  const updatedComment = await Comment.findByIdAndUpdate(commentId, {
+    content,
+    isEdited: true
+  });
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, updatedComment);
+});
+
+export { createNewComment, deleteComment, updateComment };

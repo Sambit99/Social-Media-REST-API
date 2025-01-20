@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
-const newComment = z.object({
+const newCommentSchema = z.object({
   content: z.string()
 });
 
-export { newComment };
+const updateCommentSchema = z.object({
+  content: z.string()
+});
+
+export { newCommentSchema, updateCommentSchema };
