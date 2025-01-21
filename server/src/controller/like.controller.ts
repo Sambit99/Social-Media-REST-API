@@ -31,10 +31,13 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
       return ApiError(next, new Error('Error while liking a post'), req, statusCodes.INTERNAL_SERVER_ERROR);
 
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPostLike);
-  } else {
-    await Like.findOneAndDelete({ post: new Types.ObjectId(postId) });
-    return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
   }
+
+  await Like.findOneAndDelete({
+    post: new Types.ObjectId(postId),
+    likedBy: new Types.ObjectId(userId)
+  });
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
 const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
@@ -156,4 +159,32 @@ const getLikedPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, userLikedPosts);
 });
 
-export { togglePostLike, getPostLikes, getLikedPosts };
+const toggleCommentLike = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const commentId = req.params.commentId;
+  const userId = req.user._id;
+
+  const isCommentLiked = await Like.findOne({
+    comment: new Types.ObjectId(commentId),
+    likedBy: new Types.ObjectId(userId)
+  });
+
+  if (!isCommentLiked) {
+    const newCommentLike = await Like.create({
+      comment: new Types.ObjectId(commentId),
+      likedBy: new Types.ObjectId(userId)
+    });
+
+    if (!newCommentLike)
+      return ApiError(next, new Error('Error while liking a Comment'), req, statusCodes.INTERNAL_SERVER_ERROR);
+
+    return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newCommentLike);
+  }
+
+  await Like.findOneAndDelete({
+    comment: new Types.ObjectId(commentId),
+    likedBy: new Types.ObjectId(userId)
+  });
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+});
+
+export { togglePostLike, toggleCommentLike, getPostLikes, getLikedPosts };
