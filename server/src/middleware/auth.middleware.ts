@@ -52,4 +52,17 @@ const onlyOwner = <T extends Document>(model: Model<T>, ownerFieldName: string, 
   });
 };
 
-export { isLoggedIn, onlyOwner };
+const restrictTo = (...allowedRoles: Array<string>) => {
+  return AsyncHandler(async (req: AuthenticatedRequest, _: Response, next: NextFunction) => {
+    const userId = req.user._id;
+
+    const user = (await User.findById(userId)) as IUser;
+
+    if (!allowedRoles.includes(user.role))
+      return ApiError(next, new Error(responseMessage.UNAUTHORIZED), req, statusCodes.UNAUTHORIZED);
+
+    next();
+  });
+};
+
+export { isLoggedIn, onlyOwner, restrictTo };
