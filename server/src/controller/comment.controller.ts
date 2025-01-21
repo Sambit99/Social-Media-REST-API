@@ -117,7 +117,7 @@ const getAllPostComments = AsyncHandler(async (req: AuthenticatedRequest, res: R
     }
   ]);
 
-  res.status(200).json(allComments);
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, allComments);
 });
 
 export { createNewComment, deleteComment, updateComment, getAllPostComments };

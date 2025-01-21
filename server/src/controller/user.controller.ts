@@ -37,4 +37,18 @@ const deleteUser = AsyncHandler(async (req: AuthenticatedRequest, res: Response,
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
-export { getCurrentUser, getUserById, deleteUser };
+const deleteUserById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  const userId = req.params.userId;
+
+  await User.findByIdAndDelete(userId);
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+});
+
+const getAllUsers = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  // Note: We can use aggregate query but I'm using this simple find
+  const users = await User.find().select('-refreshToken');
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, users);
+});
+
+export { getCurrentUser, getUserById, deleteUser, deleteUserById, getAllUsers };
