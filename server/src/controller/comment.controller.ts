@@ -58,4 +58,66 @@ const updateComment = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, updatedComment);
 });
 
-export { createNewComment, deleteComment, updateComment };
+const getAllPostComments = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  const postId = req.params.postId;
+  const allComments = await Comment.aggregate([
+    {
+      $match: {
+        post: new Types.ObjectId(postId)
+      }
+    },
+    {
+      $group: {
+        _id: '$post',
+        comments: { $addToSet: '$_id' },
+        totalComments: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'comments',
+        localField: 'comments',
+        foreignField: '_id',
+        as: 'comments',
+        pipeline: [
+          {
+            $project: {
+              commentedBy: 1,
+              content: 1,
+              likesCount: 1,
+              isEdited: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'posts',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'post',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              __v: 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        post: 1,
+        comments: 1,
+        totalComments: 1
+      }
+    }
+  ]);
+
+  res.status(200).json(allComments);
+});
+
+export { createNewComment, deleteComment, updateComment, getAllPostComments };

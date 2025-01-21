@@ -10,7 +10,7 @@ import { upload } from '../middleware/multer.middleware';
 import { isLoggedIn, onlyOwner } from '../middleware/auth.middleware';
 import { Post } from '../model/post.model';
 import { getPostLikes, togglePostLike } from '../controller/like.controller';
-import { createNewComment } from '../controller/comment.controller';
+import { createNewComment, getAllPostComments } from '../controller/comment.controller';
 
 const router = Router();
 
@@ -34,5 +34,6 @@ router.route('/:postId/like').post(togglePostLike);
 router.route('/:postId/likes').get(getPostLikes);
 
 router.route('/:postId/comment').post(createNewComment);
+router.route('/:postId/comments').get(getAllPostComments);
 
 export default router;
