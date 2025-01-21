@@ -94,4 +94,66 @@ const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, postLikes);
 });
 
-export { togglePostLike, getPostLikes };
+const getLikedPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const userId = req.params.userId;
+
+  const userLikedPosts = await Like.aggregate([
+    {
+      $match: {
+        likedBy: new Types.ObjectId(userId)
+      }
+    },
+    {
+      $group: {
+        _id: '$likedBy',
+        posts: { $addToSet: '$post' },
+        totalLikedPosts: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'posts',
+        localField: 'posts',
+        foreignField: '_id',
+        as: 'posts',
+        pipeline: [
+          {
+            $project: {
+              content: 1,
+              imageFile: 1,
+              videoFile: 1,
+              likesCount: 1,
+              commentsCount: 1,
+              sharesCount: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'user',
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              fullname: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $project: { _id: 0, user: 1, posts: 1, totalLikedPosts: 1 }
+    }
+  ]);
+
+  if (!userLikedPosts) return ApiError(next, new Error('No liked posts found'), req, statusCodes.BAD_REQUEST);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, userLikedPosts);
+});
+
+export { togglePostLike, getPostLikes, getLikedPosts };

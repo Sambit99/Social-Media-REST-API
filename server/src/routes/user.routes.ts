@@ -3,6 +3,7 @@ import { deleteUser, getCurrentUser, getUserById } from '../controller/user.cont
 import { isLoggedIn } from '../middleware/auth.middleware';
 import { getFollowers, getFollowing, toggleFollow } from '../controller/follow.controller';
 import { getSpecificUserPosts } from '../controller/post.controller';
+import { getLikedPosts } from '../controller/like.controller';
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.route('/:userId/followers').get(getFollowers);
 router.route('/:userId/following').get(getFollowing);
 router.route('/:userId/unfollow').delete(toggleFollow);
 router.route('/:userId/posts').get(getSpecificUserPosts);
+router.route('/:userId/liked-posts').get(getLikedPosts);
 
 export default router;
