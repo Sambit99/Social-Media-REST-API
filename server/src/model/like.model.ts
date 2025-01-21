@@ -1,5 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import { Post } from './post.model';
+import { Comment } from './comment.model';
 
 export interface ILike extends Document {
   post: Schema.Types.ObjectId;
@@ -21,6 +22,12 @@ likeSchema.post('save', async function () {
     const totalLikesForThePost: number = await Like.countDocuments({ post: this.post });
 
     await Post.findByIdAndUpdate(this.post, { likesCount: totalLikesForThePost });
+  }
+
+  if (this.comment) {
+    const totalLikesForTheComment: number = await Like.countDocuments({ comment: this.comment });
+
+    await Comment.findByIdAndUpdate(this.comment, { likesCount: totalLikesForTheComment });
   }
 });
 
