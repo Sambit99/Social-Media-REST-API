@@ -33,9 +33,15 @@ likeSchema.post('save', async function () {
 
 likeSchema.post('findOneAndDelete', async function (doc: ILike) {
   if (doc) {
-    const totalLikesForThePost: number = await Like.countDocuments({ post: doc.post });
+    if (doc.post) {
+      const totalLikesForThePost: number = await Like.countDocuments({ post: doc.post });
+      await Post.findByIdAndUpdate(doc.post, { likesCount: totalLikesForThePost });
+    }
 
-    await Post.findByIdAndUpdate(doc.post, { likesCount: totalLikesForThePost });
+    if (doc.comment) {
+      const totalLikesForTheComment: number = await Like.countDocuments({ comment: doc.comment });
+      await Comment.findByIdAndUpdate(doc.comment, { likesCount: totalLikesForTheComment });
+    }
   }
 });
 
