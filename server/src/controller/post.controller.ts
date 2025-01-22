@@ -9,6 +9,8 @@ import { Post, PostVisibility } from '../model/post.model';
 import mongoose, { Types } from 'mongoose';
 import { uploadOnCloudinary } from '../util/Cloudinary';
 import ApiResponse from '../util/ApiResponse';
+import { createNewPostNotification } from '../util/Notification';
+import { NOTIFICATION_TYPES } from '../model/notification.model';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -45,6 +47,12 @@ const createNewPost = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
   if (!(newPost.videoFile || newPost.imageFile))
     return ApiError(next, new Error('Error while uploading to Cloudinary'), req, statusCodes.INTERNAL_SERVER_ERROR);
 
+  await createNewPostNotification(
+    userId,
+    NOTIFICATION_TYPES.POST,
+    `${req.user.fullname} posted a new post`,
+    newPost._id as string
+  );
   return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPost);
 });
 
