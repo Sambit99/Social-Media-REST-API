@@ -7,6 +7,9 @@ import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import ApiResponse from '../util/ApiResponse';
 import responseMessage from '../constant/responseMessage';
+import { createPostLikeNotification } from '../util/Notification';
+import { IPost, Post } from '../model/post.model';
+import { NOTIFICATION_TYPES } from '../model/notification.model';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -27,9 +30,18 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
       likedBy: new Types.ObjectId(userId)
     });
 
+    const post: IPost = (await Post.findById(postId)) as IPost;
+
     if (!newPostLike)
       return ApiError(next, new Error('Error while liking a post'), req, statusCodes.INTERNAL_SERVER_ERROR);
-
+    await createPostLikeNotification(
+      req.user._id,
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      post.owner.toString(),
+      NOTIFICATION_TYPES.LIKE,
+      `${req.user.fullname} liked your post`,
+      newPostLike._id as string
+    );
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPostLike);
   }
 

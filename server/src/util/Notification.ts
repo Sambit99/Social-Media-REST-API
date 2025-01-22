@@ -76,6 +76,7 @@ const createNewCommentNotification = async (
   content: string,
   resourceId: string
 ) => {
+  if (from === to) return;
   await Notification.create({
     from: new Types.ObjectId(from),
     to: new Types.ObjectId(to),
@@ -85,4 +86,21 @@ const createNewCommentNotification = async (
   });
 };
 
-export { createNewPostNotification, createNewCommentNotification };
+const createPostLikeNotification = async (
+  from: string,
+  to: string,
+  type: NOTIFICATION_TYPES,
+  content: string,
+  resourceId: string
+) => {
+  if (from === to) return;
+  await Notification.create({
+    from: new Types.ObjectId(from),
+    to: new Types.ObjectId(to),
+    type,
+    content,
+    resourceId
+  });
+};
+
+export { createNewPostNotification, createNewCommentNotification, createPostLikeNotification };
