@@ -1,6 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
-enum NOTIFICATION_TYPES {
+export enum NOTIFICATION_TYPES {
   POST = 'post',
   COMMENT = 'comment',
   LIKE = 'like'
