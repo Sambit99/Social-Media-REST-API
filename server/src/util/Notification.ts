@@ -86,7 +86,7 @@ const createNewCommentNotification = async (
   });
 };
 
-const createPostLikeNotification = async (
+const createLikeNotification = async (
   from: string,
   to: string,
   type: NOTIFICATION_TYPES,
@@ -103,4 +103,4 @@ const createPostLikeNotification = async (
   });
 };
 
-export { createNewPostNotification, createNewCommentNotification, createPostLikeNotification };
+export { createNewPostNotification, createNewCommentNotification, createLikeNotification };

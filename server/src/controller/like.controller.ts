@@ -7,9 +7,10 @@ import ApiError from '../util/ApiError';
 import statusCodes from '../constant/statusCodes';
 import ApiResponse from '../util/ApiResponse';
 import responseMessage from '../constant/responseMessage';
-import { createPostLikeNotification } from '../util/Notification';
+import { createLikeNotification } from '../util/Notification';
 import { IPost, Post } from '../model/post.model';
 import { NOTIFICATION_TYPES } from '../model/notification.model';
+import { Comment, IComment } from '../model/comment.model';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -34,13 +35,13 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
 
     if (!newPostLike)
       return ApiError(next, new Error('Error while liking a post'), req, statusCodes.INTERNAL_SERVER_ERROR);
-    await createPostLikeNotification(
+    await createLikeNotification(
       req.user._id,
       // eslint-disable-next-line @typescript-eslint/no-base-to-string
       post.owner.toString(),
       NOTIFICATION_TYPES.LIKE,
       `${req.user.fullname} liked your post`,
-      newPostLike._id as string
+      post._id as string
     );
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPostLike);
   }
@@ -186,9 +187,19 @@ const toggleCommentLike = AsyncHandler(async (req: AuthenticatedRequest, res: Re
       likedBy: new Types.ObjectId(userId)
     });
 
+    const comment: IComment = (await Comment.findById(commentId)) as IComment;
+
     if (!newCommentLike)
       return ApiError(next, new Error('Error while liking a Comment'), req, statusCodes.INTERNAL_SERVER_ERROR);
 
+    await createLikeNotification(
+      req.user._id,
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      comment.commentedBy.toString(),
+      NOTIFICATION_TYPES.COMMENT,
+      `${req.user.fullname} liked your comment`,
+      comment._id as string
+    );
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newCommentLike);
   }
 
