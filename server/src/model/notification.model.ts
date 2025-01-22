@@ -22,6 +22,11 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
     type: { type: String, enum: NOTIFICATION_TYPES },
     isRead: { type: Boolean, default: false },
     content: { type: String, required: true },
+
+    // Note: Resource Id holds the UID of corresponding record
+    // Note: In case of a new Post it'll hold the Post UID
+    // Note: In case of a new Comment it'll hold the Comment UID
+    // Note: In case of a new LIKE it'll hold the LIKE UID
     resourceId: { type: String, required: true }
   },
   { timestamps: true }
