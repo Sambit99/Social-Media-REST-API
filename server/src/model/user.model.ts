@@ -22,17 +22,17 @@ export interface IUser extends Document {
   generateRefreshToken(): string;
 }
 
-const AccountTypes = Object.freeze({
-  PUBLIC: 'public',
-  PRIVATE: 'private',
-  BUSINESS: 'business'
-});
+enum AccountTypes {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+  BUSINESS = 'business'
+}
 
-const UserRoles = Object.freeze({
-  ADMIN: 'admin',
-  USER: 'user',
-  GUEST: 'guest'
-});
+enum UserRoles {
+  ADMIN = 'admin',
+  USER = 'user',
+  GUEST = 'guest'
+}
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
   {

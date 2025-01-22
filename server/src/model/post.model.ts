@@ -11,11 +11,11 @@ export interface IPost extends Document {
   sharesCount: number;
 }
 
-export const PostVisibility = Object.freeze({
-  PUBLIC: 'public',
-  PRIVATE: 'private',
-  CLOSE_FRIENDS: 'close-friends'
-});
+export enum PostVisibility {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+  CLOSE_FRIENDS = 'close-friends'
+}
 
 const postSchema: Schema<IPost> = new mongoose.Schema(
   {
