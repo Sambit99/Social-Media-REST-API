@@ -69,4 +69,20 @@ const createNewPostNotification = async (
   }
 };
 
-export { createNewPostNotification };
+const createNewCommentNotification = async (
+  from: string,
+  to: string,
+  type: NOTIFICATION_TYPES,
+  content: string,
+  resourceId: string
+) => {
+  await Notification.create({
+    from: new Types.ObjectId(from),
+    to: new Types.ObjectId(to),
+    type,
+    content,
+    resourceId
+  });
+};
+
+export { createNewPostNotification, createNewCommentNotification };
