@@ -8,6 +8,9 @@ import { newCommentSchema, updateCommentSchema } from '../schema/comment.schema'
 import { Types } from 'mongoose';
 import ApiResponse from '../util/ApiResponse';
 import responseMessage from '../constant/responseMessage';
+import { IPost, Post } from '../model/post.model';
+import { NOTIFICATION_TYPES } from '../model/notification.model';
+import { createNewCommentNotification } from '../util/Notification';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -28,9 +31,19 @@ const createNewComment = AsyncHandler(async (req: AuthenticatedRequest, res: Res
     commentedBy: new Types.ObjectId(userId)
   });
 
+  const post: IPost = (await Post.findById(postId)) as IPost;
+
   if (!comment)
     return ApiError(next, new Error('Error while creating comment'), req, statusCodes.INTERNAL_SERVER_ERROR);
 
+  await createNewCommentNotification(
+    userId,
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    post.owner.toString(),
+    NOTIFICATION_TYPES.COMMENT,
+    `${req.user.fullname} added a comment`,
+    comment._id as string
+  );
   return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, comment);
 });
 
