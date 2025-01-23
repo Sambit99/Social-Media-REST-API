@@ -88,4 +88,12 @@ const readNotification = AsyncHandler(async (req: AuthenticatedRequest, res: Res
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, notification);
 });
 
-export { getUserNotifications, readNotification };
+const deleteNotification = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  const notificationId = req.params.notificationId;
+
+  await Notification.findByIdAndDelete(notificationId);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+});
+
+export { getUserNotifications, readNotification, deleteNotification };
