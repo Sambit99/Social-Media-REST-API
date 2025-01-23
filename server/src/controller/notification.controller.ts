@@ -3,6 +3,10 @@ import { AsyncHandler } from '../util/AsyncHandler';
 import { IUser } from '../model/user.model';
 import { Notification } from '../model/notification.model';
 import { Types } from 'mongoose';
+import ApiError from '../util/ApiError';
+import statusCodes from '../constant/statusCodes';
+import ApiResponse from '../util/ApiResponse';
+import responseMessage from '../constant/responseMessage';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -70,4 +74,18 @@ const getUserNotifications = AsyncHandler(async (req: AuthenticatedRequest, res:
   res.status(200).json(userNotifications);
 });
 
-export { getUserNotifications };
+const readNotification = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const notificationId = req.params.notificationId;
+
+  const notification = await Notification.findOne({ _id: notificationId, isRead: false });
+
+  if (!notification)
+    return ApiError(next, new Error('Notification not found or already read'), req, statusCodes.BAD_REQUEST);
+
+  notification.isRead = true;
+  await notification.save();
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, notification);
+});
+
+export { getUserNotifications, readNotification };
