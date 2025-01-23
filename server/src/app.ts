@@ -31,6 +31,7 @@ import UserRouter from './routes/user.routes';
 import PostRouter from './routes/post.routes';
 import CommentRouter from './routes/comment.routes';
 import AdminRouter from './routes/admin.routes';
+import NotificationRouter from './routes/notification.routes';
 
 app.use('/api/v1', ApiRouter);
 app.use('/api/v1/auth', AuthRouter);
@@ -38,6 +39,7 @@ app.use('/api/v1/users', UserRouter);
 app.use('/api/v1/posts', PostRouter);
 app.use('/api/v1/comments', CommentRouter);
 app.use('/api/v1/admin', AdminRouter);
+app.use('/api/v1/notifications', NotificationRouter);
 
 // 404 Handler
 app.use((req: Request, _: Response, next: NextFunction) => {
