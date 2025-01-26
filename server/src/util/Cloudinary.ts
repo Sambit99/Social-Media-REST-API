@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, v2 } from 'cloudinary';
 import config from '../config/config';
 import fs from 'fs';
 import Logger from './Logger';
@@ -25,4 +25,17 @@ const uploadOnCloudinary = async (localFilePath: string) => {
   }
 };
 
-export { uploadOnCloudinary };
+const deleteFromCloudinary = async (fileUrl: string, fileType: 'image' | 'video') => {
+  try {
+    const publicId = fileUrl.split('upload')[1].split('/').slice(2).join('/').split('.')[0];
+
+    await v2.api.delete_resources([`${publicId}`], {
+      type: 'upload',
+      resource_type: fileType
+    });
+  } catch (error) {
+    Logger.error(error);
+  }
+};
+
+export { uploadOnCloudinary, deleteFromCloudinary };
