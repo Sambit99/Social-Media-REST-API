@@ -41,4 +41,19 @@ const createNewStory = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
   return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newStory);
 });
 
-export { createNewStory };
+const getSpecificUserStory = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const userId = req.params.userId;
+
+  const userStory = await Story.findOne({
+    storyBy: new Types.ObjectId(userId),
+    expiresAt: {
+      $gt: new Date(Date.now())
+    }
+  });
+
+  if (!userStory) return ApiError(next, new Error('No story found for the user'), req, statusCodes.BAD_REQUEST);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, userStory);
+});
+
+export { createNewStory, getSpecificUserStory };
