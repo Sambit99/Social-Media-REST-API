@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { createNewStory, getStory } from '../controller/story.controller';
-import { isLoggedIn } from '../middleware/auth.middleware';
+import { createNewStory, deleteStory, getStory } from '../controller/story.controller';
+import { isLoggedIn, onlyOwner } from '../middleware/auth.middleware';
 import { upload } from '../middleware/multer.middleware';
+import { Story } from '../model/story.model';
 
 const router = Router();
 
@@ -16,5 +17,7 @@ router
     ]),
     createNewStory
   );
+
+router.route('/:storyId').delete(onlyOwner(Story, 'storyBy', 'storyId'), deleteStory);
 
 export default router;

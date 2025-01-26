@@ -96,4 +96,12 @@ const getStory = AsyncHandler(async (req: AuthenticatedRequest, res: Response, n
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, stories);
 });
 
-export { createNewStory, getSpecificUserStory, getStory };
+const deleteStory = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
+  const storyId = req.params.storyId;
+
+  await Story.findByIdAndDelete(storyId);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+});
+
+export { createNewStory, getSpecificUserStory, getStory, deleteStory };
