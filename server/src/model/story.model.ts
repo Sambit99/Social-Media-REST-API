@@ -1,5 +1,7 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
-
+import cron from 'node-cron';
+import { deleteFromCloudinary } from '../util/Cloudinary';
+import Logger from '../util/Logger';
 export enum StoryVisibility {
   PUBLIC = 'public',
   PRIVATE = 'private',
@@ -23,13 +25,26 @@ const storySchema: Schema<IStory> = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      default: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      default: new Date(Date.now() + 10000)
     }
   },
   { timestamps: true }
 );
 
-// Note: TTL index for expiresAt
-storySchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+cron.schedule('*/1 * * * *', async () => {
+  const expiredStories: Array<IStory> = await Story.find({ expiresAt: { $lt: new Date(Date.now()) } });
+
+  if (expiredStories) {
+    for (const story of expiredStories) {
+      if (story.imageFile) await deleteFromCloudinary(story.imageFile, 'image');
+      if (story.videoFile) await deleteFromCloudinary(story.videoFile, 'video');
+
+      await Story.findByIdAndDelete(story._id);
+    }
+
+    Logger.info('EXPIRED STORIES DELETED');
+  }
+});
 
 export const Story: Model<IStory> = mongoose.model<IStory>('Story', storySchema);
