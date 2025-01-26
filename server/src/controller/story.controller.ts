@@ -9,6 +9,7 @@ import { Types } from 'mongoose';
 import { uploadOnCloudinary } from '../util/Cloudinary';
 import ApiResponse from '../util/ApiResponse';
 import responseMessage from '../constant/responseMessage';
+import { Follow } from '../model/follow.model';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -56,4 +57,43 @@ const getSpecificUserStory = AsyncHandler(async (req: AuthenticatedRequest, res:
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, userStory);
 });
 
-export { createNewStory, getSpecificUserStory };
+const getStory = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const userId = req.user._id;
+  const stories = await Follow.aggregate([
+    {
+      $match: {
+        followed: new Types.ObjectId(userId)
+      }
+    },
+    {
+      $group: {
+        _id: '$followed',
+        following: { $addToSet: '$follower' },
+        totalFollowings: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'following',
+        foreignField: '_id',
+        as: 'following',
+        pipeline: [{ $project: { username: 1, fullname: 1, avatar: 1 } }]
+      }
+    },
+    {
+      $lookup: {
+        from: 'stories',
+        localField: 'following',
+        foreignField: 'storyBy',
+        as: 'stories'
+      }
+    }
+  ]);
+
+  if (!stories) return ApiError(next, new Error('No stories found'), req, statusCodes.BAD_REQUEST);
+
+  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, stories);
+});
+
+export { createNewStory, getSpecificUserStory, getStory };

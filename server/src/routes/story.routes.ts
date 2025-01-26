@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createNewStory } from '../controller/story.controller';
+import { createNewStory, getStory } from '../controller/story.controller';
 import { isLoggedIn } from '../middleware/auth.middleware';
 import { upload } from '../middleware/multer.middleware';
 
@@ -8,7 +8,7 @@ const router = Router();
 router.use(isLoggedIn);
 router
   .route('/')
-  .get()
+  .get(getStory)
   .post(
     upload.fields([
       { name: 'imageFile', maxCount: 1 },

@@ -25,7 +25,7 @@ const storySchema: Schema<IStory> = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      default: new Date(Date.now() + 10000)
+      default: new Date(Date.now() + 24 * 60 * 60 * 1000)
     }
   },
   { timestamps: true }
@@ -41,9 +41,8 @@ cron.schedule('*/1 * * * *', async () => {
       if (story.videoFile) await deleteFromCloudinary(story.videoFile, 'video');
 
       await Story.findByIdAndDelete(story._id);
+      Logger.info('EXPIRED STORIES DELETED');
     }
-
-    Logger.info('EXPIRED STORIES DELETED');
   }
 });
 
