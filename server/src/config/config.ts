@@ -18,6 +18,13 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
 
+  // Redis
+  REDIS_PORT: z.coerce.number(),
+  REDIS_HOST: z.string(),
+  REDIS_USERNAME: z.string(),
+  REDIS_PASSWORD: z.string(),
+  REDIS_DB: z.coerce.number(),
+
   // Database
   DATABASE_URL: z.string().min(1)
 });
@@ -48,5 +55,12 @@ export default {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 
   // Database
-  DATABASE_URL: process.env.DATABASE_URL
+  DATABASE_URL: process.env.DATABASE_URL,
+
+  // Redis
+  REDIS_PORT: process.env.REDIS_PORT,
+  REDIS_HOST: process.env.REDIS_HOST,
+  REDIS_USERNAME: process.env.REDIS_USERNAME,
+  REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+  REDIS_DB: process.env.REDIS_DB
 };

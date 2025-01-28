@@ -65,6 +65,7 @@ const signUp = AsyncHandler(async (req: Request, res: Response, next: NextFuncti
       return ApiError(next, new Error('Error while creating new user'), req, statusCodes.INTERNAL_SERVER_ERROR);
 
     newUser.password = ''; // Note: Clearing Password for the response
+
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newUser);
   } catch (error) {
     return ApiError(next, error, req);
