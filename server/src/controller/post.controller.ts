@@ -84,6 +84,9 @@ const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response
 const getSpecificUserPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
   const specificUserId = req.params.userId;
 
+  const result = await client.get(`users:${specificUserId}:posts`);
+  if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
+
   const allPosts = await Post.aggregate([
     {
       $match: {
@@ -119,6 +122,8 @@ const getSpecificUserPosts = AsyncHandler(async (req: AuthenticatedRequest, res:
     },
     { $project: { _id: 0, owner: 1, posts: 1, totalPosts: 1 } }
   ]);
+
+  await client.set(`users:${specificUserId}:posts`, JSON.stringify(allPosts), 'EX', TimeInSeconds.DAY_IN_SECONDS);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, allPosts);
 });
