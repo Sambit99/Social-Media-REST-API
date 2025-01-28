@@ -11,6 +11,8 @@ import { uploadOnCloudinary } from '../util/Cloudinary';
 import ApiResponse from '../util/ApiResponse';
 import { createNewPostNotification } from '../util/Notification';
 import { NOTIFICATION_TYPES } from '../model/notification.model';
+import { client } from '../services/redisClient';
+import { TimeInSeconds } from '../constant/application';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -67,9 +69,14 @@ const getPublicPosts = AsyncHandler(async (req: Request, res: Response, next: Ne
 const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const postId = req.params.postId;
 
+  const result = await client.get(`posts:${postId}:post`);
+  if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
+
   const post = await Post.findById(postId);
 
   if (!post) return ApiError(next, new Error('No post found with given id'), req, statusCodes.BAD_REQUEST);
+
+  await client.set(`posts:${postId}:post`, JSON.stringify(post), 'EX', TimeInSeconds.X_DAYS_IN_SECONDS(30));
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
 });

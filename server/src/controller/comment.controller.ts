@@ -76,7 +76,7 @@ const updateComment = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
 const getAllPostComments = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
   const postId = req.params.postId;
 
-  const result = await client.get(`post:${postId}:comments`);
+  const result = await client.get(`posts:${postId}:comments`);
   if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
 
   const allComments = await Comment.aggregate([
@@ -136,7 +136,7 @@ const getAllPostComments = AsyncHandler(async (req: AuthenticatedRequest, res: R
     }
   ]);
 
-  await client.set(`post:${postId}:comments`, JSON.stringify(allComments), 'EX', TimeInSeconds.DAY_IN_SECONDS);
+  await client.set(`posts:${postId}:comments`, JSON.stringify(allComments), 'EX', TimeInSeconds.DAY_IN_SECONDS);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, allComments);
 });

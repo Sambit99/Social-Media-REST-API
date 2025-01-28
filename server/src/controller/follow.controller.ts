@@ -32,7 +32,7 @@ const toggleFollow = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
       return ApiError(next, new Error('Error while following user'), req, statusCodes.INTERNAL_SERVER_ERROR);
 
     // Note: In case user follows a new user we'll just remove the user following key from redis
-    await client.del(`user:${userId}:followings`);
+    await client.del(`users:${userId}:followings`);
 
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newFollower);
   }
@@ -40,14 +40,14 @@ const toggleFollow = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
   await Follow.findOneAndDelete({ follower: new Types.ObjectId(userId), followed: new Types.ObjectId(followUser) });
 
   // Note: In case user un-follows a user we'll just remove the user following key from redis
-  await client.del(`user:${userId}:followings`);
+  await client.del(`users:${userId}:followings`);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
 const getFollowers = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const userId = req.params.userId;
-  const result = await client.get(`user:${userId}:followers`);
+  const result = await client.get(`users:${userId}:followers`);
   if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
 
   const followers = await Follow.aggregate([
@@ -84,7 +84,7 @@ const getFollowers = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
 
   if (!followers) return ApiError(next, new Error('No followers found'), req, statusCodes.NOT_FOUND);
 
-  await client.set(`user:${userId}:followers`, JSON.stringify(followers), 'EX', TimeInSeconds.DAY_IN_SECONDS);
+  await client.set(`users:${userId}:followers`, JSON.stringify(followers), 'EX', TimeInSeconds.DAY_IN_SECONDS);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, followers);
 });
@@ -92,7 +92,7 @@ const getFollowers = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
 const getFollowing = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const userId = req.params.userId;
 
-  const result = await client.get(`user:${userId}:followings`);
+  const result = await client.get(`users:${userId}:followings`);
   if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
 
   const followings = await Follow.aggregate([
@@ -129,7 +129,7 @@ const getFollowing = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
 
   if (!followings) return ApiError(next, new Error('No followings found'), req, statusCodes.NOT_FOUND);
 
-  await client.set(`user:${userId}:followings`, JSON.stringify(followings), 'EX', TimeInSeconds.DAY_IN_SECONDS);
+  await client.set(`users:${userId}:followings`, JSON.stringify(followings), 'EX', TimeInSeconds.DAY_IN_SECONDS);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, followings);
 });

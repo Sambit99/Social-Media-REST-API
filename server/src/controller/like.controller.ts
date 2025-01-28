@@ -48,7 +48,7 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
     );
 
     // Note: In case a user likes the post we'll delete this key from redis
-    await client.del(`post:${postId}:likes`);
+    await client.del(`posts:${postId}:likes`);
 
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPostLike);
   }
@@ -59,7 +59,7 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
   });
 
   // Note: In case a user un-likes the post we'll delete this key from redis
-  await client.del(`post:${postId}:likes`);
+  await client.del(`posts:${postId}:likes`);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
@@ -67,7 +67,7 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
 const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
   const postId = req.params.postId;
 
-  const result = await client.get(`post:${postId}:likes`);
+  const result = await client.get(`posts:${postId}:likes`);
   if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
 
   const postLikes = await Like.aggregate([
@@ -121,7 +121,7 @@ const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
     }
   ]);
 
-  await client.set(`post:${postId}:likes`, JSON.stringify(postLikes), 'EX', TimeInSeconds.HOUR_IN_SECONDS);
+  await client.set(`posts:${postId}:likes`, JSON.stringify(postLikes), 'EX', TimeInSeconds.HOUR_IN_SECONDS);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, postLikes);
 });
@@ -129,7 +129,7 @@ const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
 const getLikedPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const userId = req.params.userId;
 
-  const result = await client.get(`user:${userId}:likedPosts`);
+  const result = await client.get(`users:${userId}:likedPosts`);
   if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
 
   const userLikedPosts = await Like.aggregate([
@@ -188,7 +188,7 @@ const getLikedPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
 
   if (!userLikedPosts) return ApiError(next, new Error('No liked posts found'), req, statusCodes.BAD_REQUEST);
 
-  await client.set(`user:${userId}:likedPosts`, JSON.stringify(userLikedPosts), 'EX', TimeInSeconds.HOUR_IN_SECONDS);
+  await client.set(`users:${userId}:likedPosts`, JSON.stringify(userLikedPosts), 'EX', TimeInSeconds.HOUR_IN_SECONDS);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, userLikedPosts);
 });
