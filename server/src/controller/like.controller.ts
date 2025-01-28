@@ -11,6 +11,8 @@ import { createLikeNotification } from '../util/Notification';
 import { IPost, Post } from '../model/post.model';
 import { NOTIFICATION_TYPES } from '../model/notification.model';
 import { Comment, IComment } from '../model/comment.model';
+import { client } from '../services/redisClient';
+import { TimeInSeconds } from '../constant/application';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -35,6 +37,7 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
 
     if (!newPostLike)
       return ApiError(next, new Error('Error while liking a post'), req, statusCodes.INTERNAL_SERVER_ERROR);
+
     await createLikeNotification(
       req.user._id,
       // eslint-disable-next-line @typescript-eslint/no-base-to-string
@@ -43,6 +46,7 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
       `${req.user.fullname} liked your post`,
       post._id as string
     );
+
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPostLike);
   }
 
@@ -55,6 +59,9 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
 
 const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
   const postId = req.params.postId;
+
+  const result = await client.get(`post:${postId}:likes`);
+  if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
 
   const postLikes = await Like.aggregate([
     {
@@ -107,11 +114,16 @@ const getPostLikes = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
     }
   ]);
 
+  await client.set(`post:${postId}:likes`, JSON.stringify(postLikes), 'EX', TimeInSeconds.HOUR_IN_SECONDS);
+
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, postLikes);
 });
 
 const getLikedPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const userId = req.params.userId;
+
+  const result = await client.get(`user:${userId}:likedPosts`);
+  if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
 
   const userLikedPosts = await Like.aggregate([
     {
@@ -168,6 +180,8 @@ const getLikedPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
   ]);
 
   if (!userLikedPosts) return ApiError(next, new Error('No liked posts found'), req, statusCodes.BAD_REQUEST);
+
+  await client.set(`user:${userId}:likedPosts`, JSON.stringify(userLikedPosts), 'EX', TimeInSeconds.HOUR_IN_SECONDS);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, userLikedPosts);
 });
