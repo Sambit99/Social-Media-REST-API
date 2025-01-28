@@ -12,6 +12,7 @@ import { IPost, Post } from '../model/post.model';
 import { NOTIFICATION_TYPES } from '../model/notification.model';
 import { createNewCommentNotification } from '../util/Notification';
 import { client } from '../services/redisClient';
+import { TimeInSeconds } from '../constant/application';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -135,7 +136,7 @@ const getAllPostComments = AsyncHandler(async (req: AuthenticatedRequest, res: R
     }
   ]);
 
-  await client.set(`post:${postId}:comments`, JSON.stringify(allComments));
+  await client.set(`post:${postId}:comments`, JSON.stringify(allComments), 'EX', TimeInSeconds.DAY_IN_SECONDS);
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, allComments);
 });
