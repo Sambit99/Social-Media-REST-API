@@ -47,6 +47,9 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
       post._id as string
     );
 
+    // Note: In case a user likes the post we'll delete this key from redis
+    await client.del(`post:${postId}:likes`);
+
     return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPostLike);
   }
 
@@ -54,6 +57,10 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
     post: new Types.ObjectId(postId),
     likedBy: new Types.ObjectId(userId)
   });
+
+  // Note: In case a user un-likes the post we'll delete this key from redis
+  await client.del(`post:${postId}:likes`);
+
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
 });
 
