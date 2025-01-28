@@ -11,6 +11,7 @@ import responseMessage from '../constant/responseMessage';
 import { IPost, Post } from '../model/post.model';
 import { NOTIFICATION_TYPES } from '../model/notification.model';
 import { createNewCommentNotification } from '../util/Notification';
+import { client } from '../services/redisClient';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -73,6 +74,10 @@ const updateComment = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
 
 const getAllPostComments = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
   const postId = req.params.postId;
+
+  const result = await client.get(`post:${postId}:comments`);
+  if (result) return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, JSON.parse(result));
+
   const allComments = await Comment.aggregate([
     {
       $match: {
@@ -129,6 +134,8 @@ const getAllPostComments = AsyncHandler(async (req: AuthenticatedRequest, res: R
       }
     }
   ]);
+
+  await client.set(`post:${postId}:comments`, JSON.stringify(allComments));
 
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, allComments);
 });
