@@ -41,7 +41,7 @@ export default {
   //General Configuration
   ENV: process.env.ENV,
   PORT: process.env.PORT,
-  SERVER_URL: process.env.SERVER_URL,
+  SERVER_URL: `${process.env.SERVER_URL}:${process.env.PORT}`,
 
   // Token
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
