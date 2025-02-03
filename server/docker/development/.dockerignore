@@ -1,0 +1,8 @@
+node_modules/
+
+# Ignore local development files
+.vscode/
+
+# Ignore git files
+.git/
+.gitignore
