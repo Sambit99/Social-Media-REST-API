@@ -30,7 +30,7 @@ const envSchema = z.object({
 });
 
 try {
-  envSchema.parse(process.env);
+  envSchema.safeParse(process.env);
 } catch (error) {
   if (error instanceof ZodError) {
     throw error;
