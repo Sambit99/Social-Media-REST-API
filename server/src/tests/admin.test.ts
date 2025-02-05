@@ -22,7 +22,7 @@ describe('Admin Routes', () => {
 
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-  const TEST_USERID = process.env.TEST_USERID;
+  const TEST_USERID = process.env.TEST_USER2_USERID;
 
   const getCookies = (cookies: any) => {
     const accessTokenMatch = cookies?.join('; ').match(/accessToken=([^;]+)/);
@@ -42,7 +42,7 @@ describe('Admin Routes', () => {
     getCookies(cookies);
   });
 
-  it('should fetch all users', async () => {
+  it('GET /admin/users - should fetch all users', async () => {
     const response = await api.get('/admin/users', {
       headers: { Authorization: `Bearer ${adminToken}` }
     });
@@ -53,7 +53,7 @@ describe('Admin Routes', () => {
     expect(Array.isArray(response.data.data)).toBe(true);
   });
 
-  it('should fetch all posts', async () => {
+  it('GET /admin/users - should fetch all posts', async () => {
     const response = await api.get('/admin/posts', {
       headers: { Authorization: `Bearer ${adminToken}` }
     });
@@ -64,7 +64,7 @@ describe('Admin Routes', () => {
     expect(Array.isArray(response.data.data)).toBe(true);
   });
 
-  it('should fetch a specific user profile', async () => {
+  it('GET /admin/user/:userId - should fetch a specific user profile', async () => {
     const response = await api.get(`/admin/user/${TEST_USERID}`, {
       headers: { Authorization: `Bearer ${adminToken}` }
     });
