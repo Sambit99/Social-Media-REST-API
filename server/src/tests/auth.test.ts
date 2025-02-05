@@ -33,6 +33,11 @@ describe('Authentication Routes', () => {
   let authToken: string;
   let refreshToken: string;
 
+  const TEST_USER_USERNAME = process.env.TEST_USER_USERNAME;
+  const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL;
+  const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD;
+  const TEST_USER_FULLNAME = process.env.TEST_USER_FULLNAME;
+
   const getCookies = (cookies: any) => {
     const accessTokenMatch = cookies?.join('; ').match(/accessToken=([^;]+)/);
     const refreshTokenMatch = cookies?.join('; ').match(/refreshToken=([^;]+)/);
@@ -41,12 +46,12 @@ describe('Authentication Routes', () => {
     authToken = accessToken;
   };
 
-  it('should register a new user', async () => {
+  it('POST /auth/signup - should register a new user', async () => {
     const response = await api.post('/auth/signup', {
-      email: 'testuser@example.com',
-      password: 'password123',
-      username: 'TestUser-1',
-      fullname: 'Test User'
+      email: TEST_USER_EMAIL,
+      password: TEST_USER_PASSWORD,
+      username: TEST_USER_USERNAME,
+      fullname: TEST_USER_FULLNAME
     });
 
     const cookies = response.headers['set-cookie'];
@@ -57,12 +62,12 @@ describe('Authentication Routes', () => {
     expect(response.data).toHaveProperty('message', 'User registered successfully');
   });
 
-  it(`should'nt register a user with same email`, async () => {
+  it(`POST /auth/signup - should'nt register a user with same email`, async () => {
     try {
       await api.post('/auth/signup', {
-        email: 'testuser@example.com',
-        password: 'password123',
-        username: 'TestUser-2'
+        email: TEST_USER_EMAIL,
+        password: TEST_USER_PASSWORD,
+        username: 'some other username'
       });
     } catch (error) {
       const err = error as any;
@@ -72,12 +77,12 @@ describe('Authentication Routes', () => {
     }
   });
 
-  it(`should'nt register a user with same username`, async () => {
+  it(`POST /auth/signup - should'nt register a user with same username`, async () => {
     try {
       await api.post('/auth/signup', {
-        email: 'testuser2@example.com',
-        password: 'password123',
-        username: 'TestUser-1'
+        email: 'someotherEmail@example.com',
+        password: TEST_USER_PASSWORD,
+        username: TEST_USER_USERNAME
       });
     } catch (error) {
       const err = error as any;
@@ -87,11 +92,11 @@ describe('Authentication Routes', () => {
     }
   });
 
-  it(`shouldn't log in a user having wrong password`, async () => {
+  it(`POST /auth/login - shouldn't log in a user having wrong password`, async () => {
     try {
       await api.post('/auth/login', {
-        email: 'testuser@example.com',
-        password: 'password1234'
+        email: TEST_USER_EMAIL,
+        password: 'wrong password'
       });
     } catch (error) {
       const err = error as any;
@@ -101,11 +106,11 @@ describe('Authentication Routes', () => {
     }
   });
 
-  it(`shouldn't log in a user having wrong email`, async () => {
+  it(`POST /auth/login - shouldn't log in a user having wrong email`, async () => {
     try {
       await api.post('/auth/login', {
-        email: 'testuser1@example.com',
-        password: 'password123'
+        email: 'wrongmail@example.com',
+        password: TEST_USER_PASSWORD
       });
     } catch (error) {
       const err = error as any;
@@ -115,10 +120,10 @@ describe('Authentication Routes', () => {
     }
   });
 
-  it('should log in a user', async () => {
+  it('POST /auth/login - should log in a user', async () => {
     const response = await api.post('/auth/login', {
-      email: 'testuser@example.com',
-      password: 'password123'
+      email: TEST_USER_EMAIL,
+      password: TEST_USER_PASSWORD
     });
 
     const cookies = response.headers['set-cookie'];
@@ -129,7 +134,7 @@ describe('Authentication Routes', () => {
     expect(response.data).toHaveProperty('message', 'Logged in successfully');
   });
 
-  it('should refresh authentication token', async () => {
+  it('POST /auth/refresh - should refresh authentication token', async () => {
     const response = await api.post('/auth/refresh', { refreshToken });
 
     const cookies = response.headers['set-cookie'];
@@ -140,11 +145,11 @@ describe('Authentication Routes', () => {
     expect(response.data).toHaveProperty('message', 'Token refreshed successfully');
   });
 
-  it('should update the password', async () => {
+  it('POST /auth/update-password - should update the password', async () => {
     const response = await api.post(
       '/auth/update-password',
       {
-        oldPassword: 'password123',
+        oldPassword: TEST_USER_PASSWORD,
         newPassword: 'newPassword123',
         confirmPassword: 'newPassword123'
       },
@@ -156,13 +161,13 @@ describe('Authentication Routes', () => {
     expect(response.data).toHaveProperty('message', 'Password updated successfully');
   });
 
-  it('should update the password to the old one', async () => {
+  it('POST /auth/update-password - should update the password to the old one', async () => {
     const response = await api.post(
       '/auth/update-password',
       {
         oldPassword: 'newPassword123',
-        newPassword: 'password123',
-        confirmPassword: 'password123'
+        newPassword: TEST_USER_PASSWORD,
+        confirmPassword: TEST_USER_PASSWORD
       },
       { headers: { Authorization: `Bearer ${authToken}` } }
     );
@@ -172,7 +177,7 @@ describe('Authentication Routes', () => {
     expect(response.data).toHaveProperty('message', 'Password updated successfully');
   });
 
-  it('should logout current user', async () => {
+  it('POST /auth/logout - should logout current user', async () => {
     const response = await api.post('/auth/logout', {}, { headers: { Authorization: `Bearer ${authToken}` } });
 
     expect(response.status).toBe(200);
