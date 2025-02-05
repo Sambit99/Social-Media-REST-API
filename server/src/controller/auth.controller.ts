@@ -37,7 +37,13 @@ const signUp = AsyncHandler(async (req: Request, res: Response, next: NextFuncti
   try {
     const validation = signUpSchema.safeParse(req.body);
     if (!validation.success)
-      return ApiError(next, validation.error.errors, req, statusCodes.BAD_REQUEST, responseMessage.BAD_REQUEST);
+      return ApiError(
+        next,
+        validation.error.errors,
+        req,
+        statusCodes.BAD_REQUEST,
+        'User with username/email already exists. Please login'
+      );
 
     const { username, fullname, email, password } = validation.data;
 
@@ -47,7 +53,7 @@ const signUp = AsyncHandler(async (req: Request, res: Response, next: NextFuncti
         next,
         new Error('User with username/email already exists. Please login'),
         req,
-        statusCodes.UNAUTHENTICATED
+        statusCodes.BAD_REQUEST
       );
 
     const newUser = await User.create({ username, fullname, email, password });
@@ -66,7 +72,7 @@ const signUp = AsyncHandler(async (req: Request, res: Response, next: NextFuncti
 
     newUser.password = ''; // Note: Clearing Password for the response
 
-    return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newUser);
+    return ApiResponse(req, res, statusCodes.CREATED, 'User registered successfully', newUser);
   } catch (error) {
     return ApiError(next, error, req);
   }
@@ -82,11 +88,11 @@ const login = AsyncHandler(async (req: Request, res: Response, next: NextFunctio
 
     const existingUser = await User.findOne({ $or: [{ username }, { email }] }).select('+password -__v');
     if (!existingUser)
-      return ApiError(next, new Error(`User not found or invalid user ID/Email`), req, statusCodes.BAD_REQUEST);
+      return ApiError(next, new Error(`Incorrect credentials or user not found`), req, statusCodes.BAD_REQUEST);
 
     const isValidPassword = await existingUser.validatePassword(password);
     if (!isValidPassword)
-      return ApiError(next, new Error(`Invalid Username/Email/Password`), req, statusCodes.BAD_REQUEST);
+      return ApiError(next, new Error(`Incorrect credentials or user not found`), req, statusCodes.BAD_REQUEST);
 
     existingUser.password = '';
     const tokens = await generateAccessAndRefreshTokens(existingUser._id);
@@ -119,11 +125,11 @@ const logout = AsyncHandler(async (req: AuthenticatedRequest, res: Response, nex
   res.clearCookie('accessToken', cookieOptions);
   res.clearCookie('refreshToken', cookieOptions);
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+  return ApiResponse(req, res, statusCodes.OK, 'Logged out successfully', {});
 });
 
 const refreshAccessToken = AsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const incomingRefreshToken: string | null = req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (!incomingRefreshToken)
@@ -150,7 +156,7 @@ const refreshAccessToken = AsyncHandler(async (req: Request, res: Response, next
   res.cookie('accessToken', accessToken, cookieOptions);
   res.cookie('refreshToken', refreshToken, cookieOptions);
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS);
+  return ApiResponse(req, res, statusCodes.OK, 'Token refreshed successfully', {});
 });
 
 const changeCurrentPassword = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -169,13 +175,14 @@ const changeCurrentPassword = AsyncHandler(async (req: AuthenticatedRequest, res
 
   const isValidPassword = await user.validatePassword(oldPassword);
 
-  if (!isValidPassword) return ApiError(next, new Error('Wrong password'), req, statusCodes.BAD_REQUEST);
+  if (!isValidPassword)
+    return ApiError(next, new Error('Incorrect old password or weak new password'), req, statusCodes.BAD_REQUEST);
 
   user.password = newPassword;
   await user.save({ validateBeforeSave: true });
   user.password = ''; // Note: As we have made 'password' as mandatory in our User Model. We can't use something like Delete user.password
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, user);
+  return ApiResponse(req, res, statusCodes.OK, 'Password updated successfully', user);
 });
 
 export { signUp, login, logout, refreshAccessToken, changeCurrentPassword };
