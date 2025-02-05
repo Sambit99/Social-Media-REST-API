@@ -14,18 +14,32 @@ const getCurrentUser = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
   const userId = req?.user._id;
 
   const user = await User.findById(userId);
-  if (!user) return ApiError(next, new Error('User not found'), req, statusCodes.UNAUTHORIZED, responseMessage.FAILED);
+  if (!user)
+    return ApiError(
+      next,
+      new Error('User not found or invalid user ID'),
+      req,
+      statusCodes.UNAUTHORIZED,
+      responseMessage.FAILED
+    );
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, user);
+  return ApiResponse(req, res, statusCodes.OK, 'Retrieved authenticated user profile successfully', user);
 });
 
 const getUserById = AsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.params.userId;
 
   const user = await User.findById(userId).select('-refreshToken');
-  if (!user) return ApiError(next, new Error('User not found'), req, statusCodes.UNAUTHORIZED, responseMessage.FAILED);
+  if (!user)
+    return ApiError(
+      next,
+      new Error('User not found or invalid user ID'),
+      req,
+      statusCodes.UNAUTHORIZED,
+      responseMessage.FAILED
+    );
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, user);
+  return ApiResponse(req, res, statusCodes.OK, 'Retrieved user profile successfully', user);
 });
 
 const deleteUser = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -34,7 +48,7 @@ const deleteUser = AsyncHandler(async (req: AuthenticatedRequest, res: Response,
   const user = await User.findByIdAndDelete(userId);
   if (!user) return ApiError(next, new Error('User not found'), req, statusCodes.UNAUTHORIZED, responseMessage.FAILED);
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+  return ApiResponse(req, res, statusCodes.OK, 'Account deleted successfully', {});
 });
 
 const deleteUserById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
