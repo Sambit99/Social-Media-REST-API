@@ -14,7 +14,7 @@ const HttpResponseObject = {
 };
 
 describe('Api Routes', () => {
-  it('should get the self route', async () => {
+  it('GET /self - should get the self route', async () => {
     const response = await api.get('/self');
 
     expect(response.status).toBe(200);
@@ -22,7 +22,7 @@ describe('Api Routes', () => {
     expect(response.data).toMatchObject(HttpResponseObject);
   });
 
-  it('should get the health route', async () => {
+  it('GET /health - should get the health route', async () => {
     const response = await api.get('/health');
 
     expect(response.status).toBe(200);
