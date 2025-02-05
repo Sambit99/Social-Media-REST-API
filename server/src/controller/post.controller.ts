@@ -55,7 +55,7 @@ const createNewPost = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
     `${req.user.fullname} posted a new post`,
     newPost._id as string
   );
-  return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPost);
+  return ApiResponse(req, res, statusCodes.CREATED, 'Post created successfully', newPost);
 });
 
 const getPublicPosts = AsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -74,11 +74,11 @@ const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response
 
   const post = await Post.findById(postId);
 
-  if (!post) return ApiError(next, new Error('No post found with given id'), req, statusCodes.BAD_REQUEST);
+  if (!post) return ApiError(next, new Error('Post not found'), req, statusCodes.BAD_REQUEST);
 
   await client.set(`posts:${postId}:post`, JSON.stringify(post), 'EX', TimeInSeconds.X_DAYS_IN_SECONDS(30));
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
+  return ApiResponse(req, res, statusCodes.OK, 'Retrieved post successfully', post);
 });
 
 const getSpecificUserPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
@@ -137,20 +137,37 @@ const updatePostById = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
 
   const { content, visibility } = validation.data;
   const post = await Post.findById(postId);
-  if (!post) return ApiError(next, new Error('No post found with given id'), req, statusCodes.BAD_REQUEST);
+  if (!post) return ApiError(next, new Error('Post not found or no permission to edit'), req, statusCodes.BAD_REQUEST);
   if (content) post.content = content;
   if (visibility) post.visibility = visibility;
 
   await post.save();
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, post);
+  return ApiResponse(req, res, statusCodes.OK, 'Post updated successfully', post);
 });
 
 const deletePostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
   const postId = req.params.postId;
   await Post.findByIdAndDelete(postId);
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+  return ApiResponse(req, res, statusCodes.OK, 'Post deleted successfully', {});
 });
 
-export { createNewPost, getPublicPosts, getPostById, updatePostById, deletePostById, getSpecificUserPosts };
+const getAllPosts = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const posts = await Post.find().sort({ createdAt: -1 });
+
+  if (!posts)
+    return ApiError(next, new Error('No posts found or server error'), req, statusCodes.INTERNAL_SERVER_ERROR);
+
+  return ApiResponse(req, res, statusCodes.OK, 'Retrieved all posts successfully', posts);
+});
+
+export {
+  createNewPost,
+  getPublicPosts,
+  getPostById,
+  updatePostById,
+  deletePostById,
+  getSpecificUserPosts,
+  getAllPosts
+};

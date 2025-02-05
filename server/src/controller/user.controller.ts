@@ -62,7 +62,7 @@ const getAllUsers = AsyncHandler(async (req: AuthenticatedRequest, res: Response
   // Note: We can use aggregate query but I'm using this simple find
   const users = await User.find().select('-refreshToken');
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, users);
+  return ApiResponse(req, res, statusCodes.OK, 'Retrieved all users successfully', users);
 });
 
 export { getCurrentUser, getUserById, deleteUser, deleteUserById, getAllUsers };
