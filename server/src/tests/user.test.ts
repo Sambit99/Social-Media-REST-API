@@ -18,10 +18,13 @@ describe('User Routes', () => {
   let authToken: string;
   const testUserId: string = '6788bb000c535bbd95effed5'; // Replace with a valid user ID
 
+  const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL;
+  const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD;
+
   beforeAll(async () => {
     const response = await api.post('/auth/login', {
-      email: 'testuser@example.com',
-      password: 'password123'
+      email: TEST_USER_EMAIL,
+      password: TEST_USER_PASSWORD
     });
 
     const cookies = response.headers['set-cookie'];
@@ -33,10 +36,10 @@ describe('User Routes', () => {
     expect(response.data).toMatchObject(HttpResponseObject);
     expect(response.data).toHaveProperty('success', true);
     expect(response.data).toHaveProperty('message', 'Logged in successfully');
-    expect(response.data.data).toHaveProperty('email', 'testuser@example.com');
+    expect(response.data.data).toHaveProperty('email', TEST_USER_EMAIL);
   });
 
-  it('should fetch the profile of the authenticated user', async () => {
+  it('GET /users/self - should fetch the profile of the authenticated user', async () => {
     const response = await api.get('/users/self', {
       headers: { Authorization: `Bearer ${authToken}` }
     });
@@ -45,10 +48,10 @@ describe('User Routes', () => {
     expect(response.data).toMatchObject(HttpResponseObject);
     expect(response.data).toHaveProperty('success', true);
     expect(response.data).toHaveProperty('message', 'Retrieved authenticated user profile successfully');
-    expect(response.data.data).toHaveProperty('email', 'testuser@example.com');
+    expect(response.data.data).toHaveProperty('email', TEST_USER_EMAIL);
   });
 
-  it('should fetch a specific user profile', async () => {
+  it('GET /users/:userId - should fetch a specific user profile', async () => {
     const response = await api.get(`/users/${testUserId}`, {
       headers: { Authorization: `Bearer ${authToken}` }
     });
@@ -58,7 +61,7 @@ describe('User Routes', () => {
     expect(response.data.data).toHaveProperty('_id', testUserId);
   });
 
-  it('should follow a specific user', async () => {
+  it('POST /users/:userId/follow - should follow a specific user', async () => {
     const response = await api.post(
       `/users/${testUserId}/follow`,
       {},
@@ -71,7 +74,7 @@ describe('User Routes', () => {
     expect(response.data.data).toHaveProperty('followed', testUserId);
   });
 
-  it('should un-follow a specific user', async () => {
+  it('DELETE /users/:userId/unfollow - should un-follow a specific user', async () => {
     const response = await api.delete(`/users/${testUserId}/unfollow`, {
       headers: { Authorization: `Bearer ${authToken}` }
     });
@@ -81,7 +84,7 @@ describe('User Routes', () => {
     expect(response.data).toHaveProperty('message', 'Successfully un-followed the user');
   });
 
-  it('should get the list of followers of a user', async () => {
+  it('GET /users/:userId/followers - should get the list of followers of a user', async () => {
     const response = await api.get(`/users/${testUserId}/followers`, {
       headers: { Authorization: `Bearer ${authToken}` }
     });
@@ -91,7 +94,7 @@ describe('User Routes', () => {
     expect(Array.isArray(response.data.data)).toBe(true);
   });
 
-  it('should get the list of users that a specific user is following', async () => {
+  it('GET /users/:userId/following - should get the list of users that a specific user is following', async () => {
     const response = await api.get(`/users/${testUserId}/following`, {
       headers: { Authorization: `Bearer ${authToken}` }
     });
@@ -101,7 +104,7 @@ describe('User Routes', () => {
     expect(Array.isArray(response.data.data)).toBe(true);
   });
 
-  it(`should delete the authenticated user's account`, async () => {
+  it(`DELETE /users/self - should delete the authenticated user's account`, async () => {
     const response = await api.delete('/users/self', {
       headers: { Authorization: `Bearer ${authToken}` }
     });
