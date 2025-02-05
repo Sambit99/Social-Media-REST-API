@@ -13,7 +13,35 @@ import { TimeInSeconds } from '../constant/application';
 interface AuthenticatedRequest extends Request {
   user: IUser;
 }
-const toggleFollow = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+
+const followUser = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const userId = req.user._id;
+  const followUser = req.params.userId;
+
+  const isFollowing = await Follow.findOne({
+    follower: new Types.ObjectId(userId),
+    followed: new Types.ObjectId(followUser)
+  });
+
+  if (isFollowing) {
+    return ApiError(next, new Error('User not found or already following'), req, statusCodes.BAD_REQUEST);
+  }
+
+  const newFollower = await Follow.create({
+    follower: new Types.ObjectId(userId),
+    followed: new Types.ObjectId(followUser)
+  });
+
+  if (!newFollower)
+    return ApiError(next, new Error('User not found or already following'), req, statusCodes.INTERNAL_SERVER_ERROR);
+
+  // Note: In case user follows a new user we'll just remove the user following key from redis
+  await client.del(`users:${userId}:followings`);
+
+  return ApiResponse(req, res, statusCodes.CREATED, 'Successfully followed the user', newFollower);
+});
+
+const unFollowUser = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const userId = req.user._id;
   const followUser = req.params.userId;
 
@@ -23,18 +51,7 @@ const toggleFollow = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
   });
 
   if (!isFollowing) {
-    const newFollower = await Follow.create({
-      follower: new Types.ObjectId(userId),
-      followed: new Types.ObjectId(followUser)
-    });
-
-    if (!newFollower)
-      return ApiError(next, new Error('Error while following user'), req, statusCodes.INTERNAL_SERVER_ERROR);
-
-    // Note: In case user follows a new user we'll just remove the user following key from redis
-    await client.del(`users:${userId}:followings`);
-
-    return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newFollower);
+    return ApiError(next, new Error('User not found or not following'), req, statusCodes.BAD_REQUEST);
   }
 
   await Follow.findOneAndDelete({ follower: new Types.ObjectId(userId), followed: new Types.ObjectId(followUser) });
@@ -42,7 +59,7 @@ const toggleFollow = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
   // Note: In case user un-follows a user we'll just remove the user following key from redis
   await client.del(`users:${userId}:followings`);
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+  return ApiResponse(req, res, statusCodes.OK, 'Successfully un-followed the user', {});
 });
 
 const getFollowers = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -134,4 +151,4 @@ const getFollowing = AsyncHandler(async (req: AuthenticatedRequest, res: Respons
   return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, followings);
 });
 
-export { toggleFollow, getFollowers, getFollowing };
+export { followUser, unFollowUser, getFollowers, getFollowing };

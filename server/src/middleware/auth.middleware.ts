@@ -15,14 +15,16 @@ interface AuthenticatedRequest extends Request {
 
 const isLoggedIn = AsyncHandler(async (req: AuthenticatedRequest, _: Response, next: NextFunction) => {
   try {
-    const token = (req.cookies?.accessToken as string) || req.header('Authorization')?.replace('Bearer', '');
-    if (!token) return ApiError(next, new Error('Token expired or not found'), req, statusCodes.UNAUTHENTICATED);
+    const token = (req.cookies?.accessToken as string) || req.header('Authorization')?.replace('Bearer ', '');
+    if (!token)
+      return ApiError(next, new Error('Authentication failed or invalid token'), req, statusCodes.UNAUTHENTICATED);
 
     const decodedToken: JwtPayload = jwt.verify(token, config.ACCESS_TOKEN_SECRET as jwt.Secret) as JwtPayload;
 
     const existingUser = await User.findById(decodedToken._id);
 
-    if (!existingUser) return ApiError(next, new Error(`User doesn't exist`), req, statusCodes.UNAUTHENTICATED);
+    if (!existingUser)
+      return ApiError(next, new Error(`User not found or invalid user ID/Email`), req, statusCodes.UNAUTHENTICATED);
 
     req.user = existingUser;
     next();

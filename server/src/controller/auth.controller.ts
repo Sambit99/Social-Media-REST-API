@@ -81,7 +81,8 @@ const login = AsyncHandler(async (req: Request, res: Response, next: NextFunctio
     const { username, email, password } = validation.data;
 
     const existingUser = await User.findOne({ $or: [{ username }, { email }] }).select('+password -__v');
-    if (!existingUser) return ApiError(next, new Error(`User doesn't exist`), req, statusCodes.BAD_REQUEST);
+    if (!existingUser)
+      return ApiError(next, new Error(`User not found or invalid user ID/Email`), req, statusCodes.BAD_REQUEST);
 
     const isValidPassword = await existingUser.validatePassword(password);
     if (!isValidPassword)
@@ -98,7 +99,7 @@ const login = AsyncHandler(async (req: Request, res: Response, next: NextFunctio
     res.cookie('accessToken', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
-    return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, existingUser);
+    return ApiResponse(req, res, statusCodes.OK, 'Logged in successfully', existingUser);
   } catch (error) {
     return ApiError(next, error, req);
   }
