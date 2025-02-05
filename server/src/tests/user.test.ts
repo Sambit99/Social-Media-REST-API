@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import api from '../util/AxiosInstance';
@@ -11,7 +10,8 @@ const HttpResponseObject = {
     method: expect.any(String),
     url: expect.any(String)
   },
-  message: expect.any(String)
+  message: expect.any(String),
+  data: expect.any(Object)
 };
 
 describe('User Routes', () => {
