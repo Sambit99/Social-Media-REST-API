@@ -50,7 +50,7 @@ const togglePostLike = AsyncHandler(async (req: AuthenticatedRequest, res: Respo
     // Note: In case a user likes the post we'll delete this key from redis
     await client.del(`posts:${postId}:likes`);
 
-    return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newPostLike);
+    return ApiResponse(req, res, statusCodes.CREATED, 'Post liked successfully', newPostLike);
   }
 
   await Like.findOneAndDelete({

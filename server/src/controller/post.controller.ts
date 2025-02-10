@@ -63,7 +63,7 @@ const getPublicPosts = AsyncHandler(async (req: Request, res: Response, next: Ne
 
   if (!posts) return ApiError(next, new Error('No posts found'), req, statusCodes.BAD_REQUEST);
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, posts);
+  return ApiResponse(req, res, statusCodes.OK, 'Retrieved all posts successfully', posts);
 });
 
 const getPostById = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
