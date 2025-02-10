@@ -221,14 +221,14 @@ const toggleCommentLike = AsyncHandler(async (req: AuthenticatedRequest, res: Re
       `${req.user.fullname} liked your comment`,
       comment._id as string
     );
-    return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, newCommentLike);
+    return ApiResponse(req, res, statusCodes.CREATED, 'Comment liked successfully', newCommentLike);
   }
 
   await Like.findOneAndDelete({
     comment: new Types.ObjectId(commentId),
     likedBy: new Types.ObjectId(userId)
   });
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+  return ApiResponse(req, res, statusCodes.OK, 'Comment un-liked successfully', {});
 });
 
 export { togglePostLike, toggleCommentLike, getPostLikes, getLikedPosts };

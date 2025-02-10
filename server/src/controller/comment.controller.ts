@@ -46,7 +46,7 @@ const createNewComment = AsyncHandler(async (req: AuthenticatedRequest, res: Res
     `${req.user.fullname} added a comment`,
     comment._id as string
   );
-  return ApiResponse(req, res, statusCodes.CREATED, responseMessage.SUCCESS, comment);
+  return ApiResponse(req, res, statusCodes.CREATED, 'Comment added successfully', comment);
 });
 
 const deleteComment = AsyncHandler(async (req: AuthenticatedRequest, res: Response, _: NextFunction) => {
@@ -54,7 +54,7 @@ const deleteComment = AsyncHandler(async (req: AuthenticatedRequest, res: Respon
 
   await Comment.findByIdAndDelete(commentId);
 
-  return ApiResponse(req, res, statusCodes.OK, responseMessage.SUCCESS, {});
+  return ApiResponse(req, res, statusCodes.OK, 'Comment deleted successfully', {});
 });
 
 const updateComment = AsyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
